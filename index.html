@@ -188,7 +188,7 @@
         <div class="row" style="justify-content:space-between"><strong data-tip="ch_wholesale">Wholesale</strong><span class="muted">Retail − Discount</span></div>
         <div class="row">
           <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixW" class="w-120" type="number" value="30" data-tip="mix_input"></div>
-          <div><label>Wholesale discount %</label><input id="wDisc" class="w-120" type="number" step="0.01" value="25" data-tip="wDisc_input"></div>
+          <div><label>Wholesale discount %</label><input id="wDisc" class="w-120" type="number" step="0.01" value="50" data-tip="wDisc_input" readonly></div>
         </div>
         <div class="row">
           <div><label>Wholesale price / pack</label><input id="wPrice" data-tip="priceW" class="w-120" type="text" value="$0" readonly></div>
@@ -205,10 +205,10 @@
       </div>
 
       <div class="card">
-        <div class="row" style="justify-content:space-between"><strong data-tip="ch_distributor">Distributor</strong><span class="muted">Retail − Discount</span></div>
+        <div class="row" style="justify-content:space-between"><strong data-tip="ch_distributor">Distributor</strong><span class="muted">Wholesale − Discount</span></div>
         <div class="row">
           <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixD" class="w-120" type="number" value="20" data-tip="mix_input"></div>
-          <div><label>Distributor discount %</label><input id="dDisc" class="w-120" type="number" step="0.01" value="40" data-tip="dDisc_input"></div>
+          <div><label>Distributor discount %</label><input id="dDisc" class="w-120" type="number" step="0.01" value="25" data-tip="dDisc_input" readonly></div>
         </div>
         <div class="row">
           <div><label>Distributor price / pack</label><input id="dPrice" data-tip="priceD" class="w-120" type="text" value="$0" readonly></div>
@@ -498,7 +498,7 @@ function calc(){
 
   const priceR=S.retailPrice;
   const priceW=S.retailPrice*(1 - S.wDisc/100);
-  const priceD=S.retailPrice*(1 - S.dDisc/100);
+  const priceD=priceW*(1 - S.dDisc/100); // Changed this line
 
   const gpR=priceR-cogs, gpW=priceW-cogs, gpD=priceD-cogs;
   const gmR=priceR>0? gpR/priceR:0, gmW=priceW>0? gpW/priceW:0, gmD=priceD>0? gpD/priceD:0;
@@ -519,7 +519,7 @@ function calc(){
   const bgmp = brev>0? bgpp/brev:0; const bomp = brev>0? bopp/brev:0;
   
   const retailerProfit = priceR - priceW;
-  const distProfit = priceR - priceD;
+  const distProfit = priceW - priceD; // Changed this line
   
   const totalMgPerPack = S.ing.reduce((a,x)=> a + x.mg*S.pills, 0);
   const costPerMg = totalMgPerPack > 0 ? ingPerPack / totalMgPerPack : 0;
@@ -590,7 +590,7 @@ function wireTips(C){
     channels:{title:'Channels', body:()=> 'Wholesale/Distributor apply discounts to Retail price.'},
     mix:{title:'Mix %', body:()=> 'Auto‑redistribute keeps R/W/D totaling 100%'},
     priceW:{title:'Wholesale price', body:()=> money3(S.retailPrice)+' × (1 − '+S.wDisc.toFixed(2)+'%) = <b>'+money3(C.priceW)+'</b>'},
-    priceD:{title:'Distributor price', body:()=> money3(S.retailPrice)+' × (1 − '+S.dDisc.toFixed(2)+'%) = <b>'+money3(C.priceD)+'</b>'},
+    priceD:{title:'Distributor price', body:()=> money3(C.priceW)+' (Wholesale) × (1 − '+S.dDisc.toFixed(2)+'%) = <b>'+money3(C.priceD)+'</b>'},
     gpR:{title:'Retail GP/pack', body:()=> money3(S.retailPrice)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpR)+'</b>'},
     gpW:{title:'Wholesale GP/pack', body:()=> money3(C.priceW)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpW)+'</b>'},
     gpD:{title:'Distributor GP/pack', body:()=> money3(C.priceD)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpD)+'</b>'},
@@ -613,7 +613,7 @@ function wireTips(C){
     comm:{title:'Sales commissions', body:()=> 'Per salesperson: select channels, choose commission type, add optional bonuses. Calculated for selected period.'},
     revR: {title:'Retail Revenue/pack', body:()=> 'This is the retail price per pack. = <b>'+money3(C.priceR)+'</b>'},
     retailerProfit: {title: 'Retailer Profit/pack', body:()=> 'The profit the retailer makes on a wholesale transaction.<br>'+money3(C.priceR)+' (Retail) - '+money3(C.priceW)+' (Wholesale Price) = <b>'+money3(C.retailerProfit)+'</b>'},
-    distProfit: {title: 'Distributor Profit/pack', body:()=> 'The profit the distributor makes.<br>'+money3(C.priceR)+' (Retail) - '+money3(C.priceD)+' (Distributor Price) = <b>'+money3(C.distProfit)+'</b>'},
+    distProfit: {title: 'Distributor Profit/pack', body:()=> 'The profit the distributor makes.<br>'+money3(C.priceW)+' (Wholesale) - '+money3(C.priceD)+' (Distributor Price) = <b>'+money3(C.distProfit)+'</b>'},
     shipCost: {title: 'Shipping Cost', body:()=> 'Cost to ship a single retail order.'},
     packRows: {title: 'Packaging Items', body:()=> 'List all individual packaging costs per pack.'},
     dispRows: {title: 'Display Items', body:()=> 'List all individual costs for one display unit.'},
@@ -624,7 +624,7 @@ function wireTips(C){
     packsDisp_input: {title: 'Input: Packs per display', body:()=> 'How many packs fit into one shipping/store display?'},
     mix_input: {title: 'Input: Mix %', body:()=> 'What percentage of sales comes from this channel?'},
     wDisc_input: {title: 'Input: Wholesale Discount %', body:()=> 'Discount off retail price for wholesale customers.'},
-    dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off retail price for distributors.'},
+    dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off WHOLESALE price for distributors.'},
     shipCost_input: {title: 'Input: Shipping Cost', body:()=> 'Enter the cost to ship a single retail order.'},
     packsPerOrder_input: {title: 'Input: Packs per order', body:()=> 'Average number of packs in a single retail order.'},
     monthlyVolume_input: {title: 'Input: Monthly Volume', body:()=> 'Total number of packs sold across all channels in a month.'},
@@ -640,7 +640,7 @@ function wireTips(C){
     
     ch_retail: {title: 'Retail Channel', body:()=> 'Direct-to-consumer sales at full retail price.'},
     ch_wholesale: {title: 'Wholesale Channel', body:()=> 'Sales to retailers at a discounted price.'},
-    ch_distributor: {title: 'Distributor Channel', body:()=> 'Sales to distributors at a larger discount.'},
+    ch_distributor: {title: 'Distributor Channel', body:()=> 'Sales to distributors at a secondary discount, calculated from the Wholesale Price.'},
 
     // Third Party Section Tooltips
     thirdParty_section: {title: 'Third Party Companies', body:()=> 'Model costs from various third-party service providers. Check the "Include" box for a company to add its costs to the total calculation.'},
@@ -1394,7 +1394,7 @@ function boot(){
     $('#mixW').value = 0;
     $('#mixD').value = 0;
     $('#wDisc').value = 50;
-    $('#dDisc').value = 60;
+    $('#dDisc').value = 25; // 75% of wholesale price is a 25% discount
     $('#packsPerOrder').value = 1;
     $('#shipCost').value = 7.95;
 
