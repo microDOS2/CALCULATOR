@@ -65,7 +65,7 @@
     <h2>Product Specifications <span class="q" data-tip="prod">?</span></h2>
     <div class="grid-3">
       <div><label>Pills per pack <span class="q" data-tip="pills">?</span></label><input id="pills" type="number" value="3" data-tip="pills_input"></div>
-      <div><label>Retail price per pack (USD) <span class="q" data-tip="price">?</span></label><input id="retailPrice" type="number" step="0.01" value="12.95" data-tip="price_input"></div>
+      <div><label>Retail price per pack (USD) <span class="q" data-tip="price">?</span></label><input id="retailPrice" type="number" step="0.01" value="19.95" data-tip="price_input"></div>
       <div><label>Packs per display <span class="q" data-tip="packsDisp">?</span></label><input id="packsPerDisplay" type="number" value="12" data-tip="packsDisp_input"></div>
     </div>
 
@@ -84,8 +84,8 @@
     <div class="grid-2">
       <div class="card"><div class="muted">Total ingredient cost per pack <span class="q" data-tip="k_ing">?</span></div><div id="kpi_ing" data-tip="k_ing" class="big thin">$0</div></div>
       <div class="card"><div class="muted">Total cost of goods per pack (for Gross) <span class="q" data-tip="k_cogs">?</span></div><div id="kpi_cogs" data-tip="k_cogs" class="big thin">$0</div></div>
-      <div class="card"><div class="muted">Fully loaded cost per milligram <span class="q" data-tip="k_mg">?</span></div><div id="kpi_costmg" data-tip="k_mg" class="big thin">$0</div></div>
-      <div class="card"><div class="muted">Fully loaded cost per gram <span class="q" data-tip="k_g">?</span></div><div id="kpi_costg" data-tip="k_g" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Ingredient Cost per milligram <span class="q" data-tip="k_mg">?</span></div><div id="kpi_costmg" data-tip="k_mg" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Ingredient Cost per gram <span class="q" data-tip="k_g">?</span></div><div id="kpi_costg" data-tip="k_g" class="big thin">$0</div></div>
     </div>
 
     <div class="divider"></div>
@@ -429,7 +429,7 @@ function calc(){
   const distProfit = priceR - priceD;
   
   const totalMgPerPack = S.ing.reduce((a,x)=> a + x.mg*S.pills, 0);
-  const costPerMg = totalMgPerPack > 0 ? cogs / totalMgPerPack : 0;
+  const costPerMg = totalMgPerPack > 0 ? ingPerPack / totalMgPerPack : 0;
   const costPerGram = costPerMg * 1000;
 
 
@@ -544,8 +544,8 @@ function wireTips(C){
     ingredients:{title:'Ingredients', body:()=> 'Σ(mg/pill × pills × $/mg)'},
     k_ing:{title:'Ingredient cost / pack', body:()=> '= <b>'+money3(C.ingPerPack)+'</b>'},
     k_cogs:{title:'COGS / pack', body:()=> money3(C.ingPerPack)+' + '+money3(C.packPerPack)+' + '+money3(C.dispPerPack)+' = <b>'+money3(C.cogs)+'</b>'},
-    k_mg:{title:'Fully loaded $/mg', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.cogs)+' / '+mg.toFixed(0)+' mg = <b>'+money3(C.costPerMg)+'</b>':'—' }},
-    k_g:{title:'Fully loaded $/gram', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.costPerMg)+' × 1000 = <b>'+money(C.costPerGram)+'</b>':'—' }},
+    k_mg:{title:'Ingredient Cost $/mg', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.ingPerPack)+' / '+mg.toFixed(0)+' mg = <b>'+money3(C.costPerMg)+'</b>':'—' }},
+    k_g:{title:'Ingredient Cost $/gram', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.costPerMg)+' × 1000 = <b>'+money(C.costPerGram)+'</b>':'—' }},
     channels:{title:'Channels', body:()=> 'Wholesale/Distributor apply discounts to Retail price.'},
     mix:{title:'Mix %', body:()=> 'Auto‑redistribute keeps R/W/D totaling 100%'},
     priceW:{title:'Wholesale price', body:()=> money3(S.retailPrice)+' × (1 − '+S.wDisc.toFixed(2)+'%) = <b>'+money3(C.priceW)+'</b>'},
@@ -845,15 +845,34 @@ function saveCapture(){ const name = ($('#cap_name').value||'').trim() || 'Custo
 
 // ===== Events =====
 function wireInputs(){ 
-    document.addEventListener('input', e=>{ 
-        const t=e.target; 
-        if((t.type === 'number' || t.type === 'text') && t.closest('.card')){
-            if(t.id==='mixR'||t.id==='mixW'||t.id==='mixD') {
-                enforceMix(t.id);
+    document.addEventListener('input', e => {
+        const t = e.target;
+
+        // Handle pill count to auto-update retail price
+        if (t.id === 'pills') {
+            const retailPriceInput = $('#retailPrice');
+            const pillCount = t.value;
+            const pricingTiers = {
+                '3': '19.95',
+                '10': '57.50',
+                '15': '82.50',
+                '30': '157.50'
+            };
+            if (pricingTiers[pillCount]) {
+                retailPriceInput.value = pricingTiers[pillCount];
             }
         }
-        if ($('#autoCalc').checked) render();
-    }); 
+
+        // Handle mix percentages
+        if (t.id === 'mixR' || t.id === 'mixW' || t.id === 'mixD') {
+            enforceMix(t.id);
+        }
+
+        // Trigger recalculation if auto-calc is enabled
+        if ($('#autoCalc').checked) {
+            render();
+        }
+    });
     
     $('#channel_toggles').addEventListener('change', () => {
         updateChannelStates();
