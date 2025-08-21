@@ -41,6 +41,45 @@
   table{ width:100%; border-collapse:collapse; font-size:13px }
   th,td{ padding:8px 10px; border-bottom:1px solid ButtonBorder; text-align:right; white-space:nowrap }
   th:first-child,td:first-child{ text-align:left }
+
+  /* Styles for the new Third Party section */
+  #thirdPartySection details {
+    border: 1px solid ButtonBorder;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: color-mix(in srgb, Field 95%, CanvasText 5%);
+  }
+  #thirdPartySection summary {
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #thirdPartySection summary:hover {
+    background: color-mix(in srgb, Field 90%, CanvasText 10%);
+  }
+  #thirdPartySection .company-content {
+    padding: 0 10px 10px;
+  }
+  #thirdPartySection table {
+    font-size: 12px;
+  }
+  #thirdPartySection table td, #thirdPartySection table th {
+    padding: 6px 8px;
+  }
+  #thirdPartySection input[type="number"] {
+    width: 120px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  #thirdPartyCostSummary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
 </style>
 </head>
 <body>
@@ -216,6 +255,27 @@
     <div id="comm_proj_table" class="card"></div>
 
   </section>
+
+  <!-- START: Third Party Companies Section -->
+  <section id="thirdPartySection" style="grid-column:1 / -1">
+    <h2>Third Party Companies <span class="q" data-tip="thirdParty_section">?</span></h2>
+    <div id="thirdPartyCompaniesContainer"></div>
+    <div id="thirdPartyCostSummary">
+        <div class="card">
+            <div class="muted">Total Monthly Cost <span class="q" data-tip="tp_monthly">?</span></div>
+            <div id="tp_monthly_cost" class="big thin">$0.00</div>
+        </div>
+        <div class="card">
+            <div class="muted">Total Weekly Cost <span class="q" data-tip="tp_weekly">?</span></div>
+            <div id="tp_weekly_cost" class="big thin">$0.00</div>
+        </div>
+        <div class="card">
+            <div class="muted">Total Daily Cost <span class="q" data-tip="tp_daily">?</span></div>
+            <div id="tp_daily_cost" class="big thin">$0.00</div>
+        </div>
+    </div>
+  </section>
+  <!-- END: Third Party Companies Section -->
 
   <section style="grid-column:1 / -1">
     <div class="row" style="justify-content:space-between; align-items:flex-end">
@@ -606,6 +666,12 @@ function wireTips(C){
     ch_retail: {title: 'Retail Channel', body:()=> 'Direct-to-consumer sales at full retail price.'},
     ch_wholesale: {title: 'Wholesale Channel', body:()=> 'Sales to retailers at a discounted price.'},
     ch_distributor: {title: 'Distributor Channel', body:()=> 'Sales to distributors at a larger discount.'},
+
+    // Third Party Section Tooltips
+    thirdParty_section: {title: 'Third Party Companies', body:()=> 'Model costs from various third-party service providers. Check the "Include" box for a company to add its costs to the total calculation.'},
+    tp_monthly: {title: 'Total Monthly Cost', body:()=> 'The sum of all monthly costs from the "included" third-party companies.'},
+    tp_weekly: {title: 'Total Weekly Cost', body:()=> 'The total monthly cost divided by 4.33 (average weeks in a month).'},
+    tp_daily: {title: 'Total Daily Cost', body:()=> 'The total monthly cost divided by 30.44 (average days in a month).'},
   };
 
   ALL_COLUMNS.forEach(col => {
@@ -843,6 +909,109 @@ function openCaptureModal(){
 }
 function saveCapture(){ const name = ($('#cap_name').value||'').trim() || 'Custom capture'; const keys=[]; Object.values(GROUPS).flat().forEach(k=>{ if($('#col_'+k).checked) keys.push(k) }); CAPTURES[name]=keys; const opt=document.createElement('option'); opt.value=name; opt.textContent=name; $('#capture_sel').appendChild(opt); $('#capture_sel').value=name; $('#modal').style.display='none' }
 
+// ===== START: Third Party Section Logic =====
+const thirdPartyData = {
+    "Sales Company": [
+        "Sales Strategy Development", "Territory & Channel Mapping", "Prospecting & Lead Generation", "CRM Setup & Management", "Pipeline Management", "Sales Collateral Creation", "Sales Training & Coaching", "Sales Call Execution", "Trade Show Representation", "Distributor & Retailer Outreach", "Key Account Management", "Sales Order Processing", "Negotiation & Contract Closing", "Commission on Sales", "Sales Performance Reporting", "Wholesale Account Setup Fees", "Retail Buyer Introductions", "Customer Relationship Mgmt", "Merchandising & Display Setup", "Sampling & Demo Programs", "Incentive Program Mgmt", "Channel Conflict Resolution", "Market Feedback Reporting", "Sales Forecasting", "Customer Onboarding & Education"
+    ],
+    "Operations Company": [
+        "Operations Strategy Development", "SOP Creation & Documentation", "Workflow Optimization", "Process Automation & Tech", "KPI Dashboard Setup", "Supply Chain Management", "Vendor Contract Negotiation", "Inventory Oversight", "Freight & Shipping Coordination", "Procurement & Purchasing", "Quality Control Audits", "Risk & Compliance Oversight", "Facility & Equipment Management", "Workforce Scheduling", "Safety & OSHA Programs", "Lean / Cost Reduction", "Returns & Reverse Logistics", "ERP/CRM/WMS Integration", "Customer Service Oversight", "Performance Tracking Reports", "Multi-Channel Ops Alignment", "Training & Onboarding", "IT Infrastructure Support", "Project Management Services", "Crisis & Contingency Planning"
+    ],
+    "Fulfillment Company": [
+        "Inbound Receiving Fees", "SKU Setup Fees", "Quality Control on Receipt", "Pallet Breakdown / Sorting", "Storage Fees (pallet/bin)", "Climate-Controlled Storage", "Long-Term Storage Fees", "Pick Fees (per item)", "Pack Fees (per order)", "Packaging Materials", "Custom Packaging / Branded Boxes", "Kitting & Assembly", "Shipping Label Fees", "Carrier Postage (pass-through)", "Freight Coordination (LTL/FTL)", "International Shipping Docs", "Returns Processing Fees", "Rework / Relabeling", "Lot & Expiration Tracking", "Subscription Box Assembly", "Account Management Fee", "Tech Integration Fee", "Inventory Cycle Counting", "Disposal / Liquidation Fees", "Rush Order / Priority Handling"
+    ],
+    "Business Management Company": [
+        "Business Strategy Development", "Market & Channel Planning", "Fractional CEO/COO Advisory", "OKRs & Roadmap Development", "Financial Modeling & Forecasting", "Budget Development & Oversight", "Profitability & Margin Analysis", "Fundraising & Investor Support", "Governance & Board Reporting", "Risk & Compliance Oversight", "Contract & Legal Coordination", "Licensing & Regulatory Filing", "Vendor Oversight & Coordination", "Cross-System Integration", "HR & Org Design", "Compensation & Incentive Planning", "Executive Recruiting Support", "Performance Management Systems", "Capital Allocation Strategy", "Strategic Partnership Dev.", "Channel Performance Reviews", "Quarterly Business Reviews", "KPI Dashboard Reporting", "Scenario Planning & Stress Tests", "Crisis & Contingency Mgmt"
+    ],
+    "Marketing Company": [
+        "Marketing Strategy Development", "Brand Identity & Guidelines", "Logo & Visual Design", "Content Writing (blogs, copy)", "Photography (product, lifestyle)", "Video Production", "Graphic Design (ads, infographics)", "Paid Media Management", "Ad Spend (pass-through)", "Conversion Rate Optimization", "Website & Landing Page Design", "Search Engine Optimization (SEO)", "Social Media Management", "Influencer & Affiliate Mgmt", "Email Marketing Campaigns", "Marketing Automation (HubSpot, etc.)", "PR & Media Outreach", "Event Marketing (launch, pop-ups)", "Sponsorship Management", "Analytics Dashboards & Reporting", "Customer Segmentation & Personas", "Market Research & Competitor Analysis", "Product Launch Campaigns", "Creative Direction (tone/look/feel)", "Crisis Communication & Reputation"
+    ]
+};
+
+function buildThirdPartySection() {
+    const container = $('#thirdPartyCompaniesContainer');
+    container.innerHTML = '';
+
+    for (const [company, items] of Object.entries(thirdPartyData)) {
+        const details = document.createElement('details');
+        const companyId = company.replace(/\s+/g, '-');
+
+        let tableRows = items.map((item, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${item}</td>
+                <td><input type="number" class="tp-cost" value="0.00" step="0.01" data-company="${companyId}"></td>
+            </tr>
+        `).join('');
+
+        details.innerHTML = `
+            <summary>
+                <span>${company}</span>
+                <label class="row" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="tp-include" id="include-${companyId}">
+                    Include in calculations
+                </label>
+            </summary>
+            <div class="company-content">
+                <div class="scroller" style="max-height:300px; overflow:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">#</th>
+                                <th>Line Item</th>
+                                <th style="width:120px;">Cost ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+        container.appendChild(details);
+    }
+}
+
+function calculateThirdPartyCosts() {
+    let totalMonthlyCost = 0;
+    const companies = Object.keys(thirdPartyData);
+
+    companies.forEach(company => {
+        const companyId = company.replace(/\s+/g, '-');
+        const includeCheckbox = $(`#include-${companyId}`);
+        if (includeCheckbox && includeCheckbox.checked) {
+            const costInputs = $$(`.tp-cost[data-company="${companyId}"]`);
+            costInputs.forEach(input => {
+                totalMonthlyCost += num(input.value);
+            });
+        }
+    });
+
+    const weeklyCost = totalMonthlyCost / 4.33; // Average weeks in a month
+    const dailyCost = totalMonthlyCost / 30.44; // Average days in a month
+
+    $('#tp_monthly_cost').textContent = money(totalMonthlyCost);
+    $('#tp_weekly_cost').textContent = money(weeklyCost);
+    $('#tp_daily_cost').textContent = money(dailyCost);
+}
+
+function wireThirdPartyEvents() {
+    const container = $('#thirdPartySection');
+    container.addEventListener('input', (e) => {
+        if (e.target.classList.contains('tp-cost') || e.target.classList.contains('tp-include')) {
+            calculateThirdPartyCosts();
+        }
+    });
+     container.addEventListener('change', (e) => {
+        if (e.target.classList.contains('tp-include')) {
+            calculateThirdPartyCosts();
+        }
+    });
+}
+// ===== END: Third Party Section Logic =====
+
+
 // ===== Events =====
 function wireInputs(){ 
     document.addEventListener('input', e => {
@@ -895,6 +1064,13 @@ function boot(){
     wireInputs(); 
     migrateOld(); 
     updateChannelStates();
+    
+    // --- New Section Initialization ---
+    buildThirdPartySection();
+    wireThirdPartyEvents();
+    calculateThirdPartyCosts(); // Initial calculation
+    // ---------------------------------
+
     render(); 
 }
 boot();
