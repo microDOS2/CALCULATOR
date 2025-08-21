@@ -188,7 +188,7 @@
         <div class="row" style="justify-content:space-between"><strong data-tip="ch_wholesale">Wholesale</strong><span class="muted">Retail − Discount</span></div>
         <div class="row">
           <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixW" class="w-120" type="number" value="30" data-tip="mix_input"></div>
-          <div><label>Wholesale discount %</label><input id="wDisc" class="w-120" type="number" step="0.01" value="50" data-tip="wDisc_input" readonly></div>
+          <div><label>Wholesale discount %</label><input id="wDisc" class="w-120" type="number" step="0.01" value="50" data-tip="wDisc_input"></div>
         </div>
         <div class="row">
           <div><label>Wholesale price / pack</label><input id="wPrice" data-tip="priceW" class="w-120" type="text" value="$0" readonly></div>
@@ -208,7 +208,7 @@
         <div class="row" style="justify-content:space-between"><strong data-tip="ch_distributor">Distributor</strong><span class="muted">Wholesale − Discount</span></div>
         <div class="row">
           <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixD" class="w-120" type="number" value="20" data-tip="mix_input"></div>
-          <div><label>Distributor discount %</label><input id="dDisc" class="w-120" type="number" step="0.01" value="25" data-tip="dDisc_input" readonly></div>
+          <div><label>Distributor discount %</label><input id="dDisc" class="w-120" type="number" step="0.01" value="25" data-tip="dDisc_input"></div>
         </div>
         <div class="row">
           <div><label>Distributor price / pack</label><input id="dPrice" data-tip="priceD" class="w-120" type="text" value="$0" readonly></div>
@@ -237,6 +237,31 @@
       <label class="row"><input id="ohR" type="checkbox" checked> Include overhead in Retail</label>
       <label class="row"><input id="ohW" type="checkbox" checked> Include overhead in Wholesale</label>
       <label class="row"><input id="ohD" type="checkbox" checked> Include overhead in Distributor</label>
+    </div>
+    
+    <div class="divider"></div>
+
+    <h2>Break-Even Analysis <span class="q" data-tip="be_section">?</span></h2>
+    <div class="row" style="justify-content: space-between;">
+        <label class="row"><input id="be_include_overhead" type="checkbox" checked> Include Monthly Overhead in Calculation</label>
+    </div>
+    <div class="grid-2">
+        <div class="card">
+            <div class="muted">Retail Break-Even <span class="q" data-tip="be_retail">?</span></div>
+            <div id="be_retail" class="big thin">—</div>
+        </div>
+        <div class="card">
+            <div class="muted">Wholesale Break-Even <span class="q" data-tip="be_wholesale">?</span></div>
+            <div id="be_wholesale" class="big thin">—</div>
+        </div>
+        <div class="card">
+            <div class="muted">Distributor Break-Even <span class="q" data-tip="be_distributor">?</span></div>
+            <div id="be_distributor" class="big thin">—</div>
+        </div>
+        <div class="card">
+            <div class="muted">Blended Break-Even <span class="q" data-tip="be_blended">?</span></div>
+            <div id="be_blended" class="big thin">—</div>
+        </div>
     </div>
     
     <div class="divider"></div>
@@ -498,7 +523,7 @@ function calc(){
 
   const priceR=S.retailPrice;
   const priceW=S.retailPrice*(1 - S.wDisc/100);
-  const priceD=priceW*(1 - S.dDisc/100); // Changed this line
+  const priceD=priceW*(1 - S.dDisc/100); 
 
   const gpR=priceR-cogs, gpW=priceW-cogs, gpD=priceD-cogs;
   const gmR=priceR>0? gpR/priceR:0, gmW=priceW>0? gpW/priceW:0, gmD=priceD>0? gpD/priceD:0;
@@ -519,15 +544,28 @@ function calc(){
   const bgmp = brev>0? bgpp/brev:0; const bomp = brev>0? bopp/brev:0;
   
   const retailerProfit = priceR - priceW;
-  const distProfit = priceW - priceD; // Changed this line
+  const distProfit = priceW - priceD;
   
   const totalMgPerPack = S.ing.reduce((a,x)=> a + x.mg*S.pills, 0);
   const costPerMg = totalMgPerPack > 0 ? ingPerPack / totalMgPerPack : 0;
   const costPerGram = costPerMg * 1000;
 
   const commissionResults = calculateAllCommissions(S, {priceR, priceW, priceD, gpR, gpW, gpD});
+  
+  // Break-Even Calculation
+  const beIncludeOverhead = $('#be_include_overhead').checked;
+  const totalFixedCosts = beIncludeOverhead ? S.oh.reduce((a,x)=> a+x, 0) : 0;
+  const be_units_R = opR > 0 ? totalFixedCosts / opR : Infinity;
+  const be_units_W = opW > 0 ? totalFixedCosts / opW : Infinity;
+  const be_units_D = opD > 0 ? totalFixedCosts / opD : Infinity;
+  const be_units_B = bopp > 0 ? totalFixedCosts / bopp : Infinity;
 
-  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults };
+  const be_rev_R = be_units_R * priceR;
+  const be_rev_W = be_units_W * priceW;
+  const be_rev_D = be_units_D * priceD;
+  const be_rev_B = be_units_B * brev;
+
+  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B };
 }
 
 function render(){
@@ -560,6 +598,13 @@ function render(){
   $('#kpi_bopp').textContent = money3(C.bopp);
   $('#kpi_bomp').textContent = pct(C.bomp);
 
+  // Render Break-Even
+  const formatBE = (units, rev) => isFinite(units) ? `${Math.ceil(units).toLocaleString()} packs<br><span class="muted">${money(rev)}</span>` : 'Unprofitable';
+  $('#be_retail').innerHTML = formatBE(C.be_units_R, C.be_rev_R);
+  $('#be_wholesale').innerHTML = formatBE(C.be_units_W, C.be_rev_W);
+  $('#be_distributor').innerHTML = formatBE(C.be_units_D, C.be_rev_D);
+  $('#be_blended').innerHTML = formatBE(C.be_units_B, C.be_rev_B);
+
   // Render new commission table
   renderCommissionTable(C.commissionResults);
 
@@ -575,6 +620,8 @@ function render(){
 
 function wireTips(C){
   const S=C.S; const ship = S.includeShip? money3(C.shipPerPack)+' per pack' : '$0 not included';
+  const beIncludeOverhead = $('#be_include_overhead').checked;
+  const beFixedCosts = beIncludeOverhead ? 'Total Fixed Costs' : '$0 (Overhead Excluded)';
   const tips = {
     prod:{title:'Product specs', body:()=> 'Inputs feed every calculation.'},
     pills:{title:'Pills per pack', body:()=> S.pills+' pills/pack'},
@@ -663,6 +710,13 @@ function wireTips(C){
     comm_include_pres: {title: 'Include in President\'s Override', body:()=> 'Check this box to include this VP and their entire hierarchy (all their RSMs and salespersons) in the President of Sales\' override calculation.'},
     comm_channel_assign_vp: {title: 'Assign Channel to VP', body:()=> 'For this specific sales channel (e.g., Retail), select which VP will receive the credit for this salesperson\'s performance. This allows splitting a single rep\'s performance across different VPs based on the channel.'},
     comm_bonuses: {title: 'Target Bonuses', body:()=> 'Add performance-based bonuses. Select a metric (Units, Revenue, or Profit), set a threshold, and define the bonus amount paid when the threshold is met.'},
+
+    // Break-Even Tooltips
+    be_section: {title: 'Break-Even Analysis', body:()=> 'Calculates the number of packs to sell to cover all fixed costs (from Monthly Costs). If a channel is unprofitable (negative operating profit per pack), it can never break even. Uncheck the box to see the break-even point without fixed overhead.'},
+    be_retail: {title: 'Retail Break-Even', body:()=> `${beFixedCosts} / Retail Operating Profit per Pack`},
+    be_wholesale: {title: 'Wholesale Break-Even', body:()=> `${beFixedCosts} / Wholesale Operating Profit per Pack`},
+    be_distributor: {title: 'Distributor Break-Even', body:()=> `${beFixedCosts} / Distributor Operating Profit per Pack`},
+    be_blended: {title: 'Blended Break-Even', body:()=> `${beFixedCosts} / Blended Operating Profit per Pack`},
   };
 
   ALL_COLUMNS.forEach(col => {
@@ -1394,7 +1448,7 @@ function boot(){
     $('#mixW').value = 0;
     $('#mixD').value = 0;
     $('#wDisc').value = 50;
-    $('#dDisc').value = 25; // 75% of wholesale price is a 25% discount
+    $('#dDisc').value = 25; 
     $('#packsPerOrder').value = 1;
     $('#shipCost').value = 7.95;
 
