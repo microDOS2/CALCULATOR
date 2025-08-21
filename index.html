@@ -726,11 +726,12 @@ const ALL_COLUMNS = [
   {key:'load', label:'Load', tooltip: 'Load this scenario\'s inputs.'}
 ];
 
-const SCENARIO_TABLE_KEYS = ['savedAt', 'label', 'retailPrice', 'cogs', 'brev', 'bopp', 'totalRevenue', 'commPctGross', 'totalOpProfit', 'anonymous', 'if', 'load'];
+const SCENARIO_TABLE_KEYS = ALL_COLUMNS.map(c => c.key).filter(k => k !== 'load');
+
 
 function ensureFullCapture(){ CAPTURES['__full__'] = ALL_COLUMNS.map(c=>c.key) }
 function currentCaptureKeys(){ const sel=$('#capture_sel').value; return CAPTURES[sel]||ALL_COLUMNS.map(c=>c.key) }
-function drawScenarioTableHeaders(){ const head=$('#scenarios_head'); head.innerHTML=''; const tr=document.createElement('tr'); SCENARIO_TABLE_KEYS.forEach(key=>{ const colInfo = ALL_COLUMNS.find(c => c.key === key); const th=document.createElement('th'); th.textContent=colInfo.label; tr.appendChild(th) }); head.appendChild(tr) }
+function drawScenarioTableHeaders(){ const head=$('#scenarios_head'); head.innerHTML=''; const tr=document.createElement('tr'); SCENARIO_TABLE_KEYS.forEach(key=>{ const colInfo = ALL_COLUMNS.find(c => c.key === key); const th=document.createElement('th'); th.textContent=colInfo.label; tr.appendChild(th) }); const th=document.createElement('th'); th.textContent='Load'; tr.appendChild(th); head.appendChild(tr) }
 function loadScenarios(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]') }catch(e){ return [] } }
 function saveScenarios(list){ localStorage.setItem(LS_KEY, JSON.stringify(list)) }
 function migrateOld(){ /* Migration logic can be re-added if needed */ }
@@ -759,17 +760,16 @@ function drawScenarioRows(){
     const tr=document.createElement('tr'); 
     SCENARIO_TABLE_KEYS.forEach(key=>{ 
       const td=document.createElement('td'); 
-      if (key === 'load') {
-        const btn=document.createElement('button'); 
-        btn.className='btn small'; 
-        btn.textContent='Load'; 
-        btn.onclick=()=> restoreScenario(r.__inputs||{}); 
-        td.appendChild(btn); 
-      } else {
-        td.textContent = r[key] ?? '—'; 
-      }
+      td.textContent = r[key] ?? '—'; 
       tr.appendChild(td) 
     }); 
+    const td=document.createElement('td'); 
+    const btn=document.createElement('button'); 
+    btn.className='btn small'; 
+    btn.textContent='Load'; 
+    btn.onclick=()=> restoreScenario(r.__inputs||{}); 
+    td.appendChild(btn); 
+    tr.appendChild(td);
     body.appendChild(tr) 
   }) 
 }
