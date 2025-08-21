@@ -1368,35 +1368,42 @@ function wireInputs(){
 
 // ===== Boot =====
 function boot(){ 
-    // Set default values from the image
-    $('#pills').value = 10;
-    $('#retailPrice').value = 57.50;
-    $('#packsPerDisplay').value = 12;
+    // Set default values for the top-left section from the image
+    $('#pills').value = 3;
+    $('#retailPrice').value = 19.95;
+    $('#packsPerDisplay').value = 10;
 
     $('#ingredients').innerHTML = '';
-    $('#ingredients').appendChild(makeIngRow('4-HO-MET', 10, 0.08));
-    $('#ingredients').appendChild(makeIngRow('Ingredient B', 5, 0.10));
-    $('#ingredients').appendChild(makeIngRow('Ingredient C', 2, 0.05));
+    $('#ingredients').appendChild(makeIngRow('Metocin 4-HO-MET', 2, 0.7));
+    $('#ingredients').appendChild(makeIngRow('Filler', 800, 0.00007));
+    $('#ingredients').appendChild(makeIngRow('Binder', 198, 0.0001));
 
     $('#pack_rows').innerHTML = '';
-    $('#pack_rows').appendChild(makePackRow('PRODUCT PACKAGE', 1.50));
+    $('#pack_rows').appendChild(makePackRow('PRODUCT PACKAGE', 1.5));
+    $('#pack_rows').appendChild(makePackRow('OUTER BOX', 1.75));
     
     $('#disp_rows').innerHTML = '';
-    $('#disp_rows').appendChild(makeDispRow('DISPLAY BOX', 1.00));
-    $('#disp_rows').appendChild(makeDispRow('SHIPPING BOX', 1.50));
+    $('#disp_rows').appendChild(makeDispRow('DISPLAY BOX', 1));
+    $('#disp_rows').appendChild(makeDispRow('SHIPPING BOX', 1.5));
 
+    // Set other defaults from the image
+    $('#includeR').checked = true;
+    $('#includeW').checked = false;
+    $('#includeD').checked = false;
     $('#mixR').value = 100;
     $('#mixW').value = 0;
     $('#mixD').value = 0;
-    $('#includeW').checked = false;
-    $('#includeD').checked = false;
-
-    $('#wDisc').value = 25;
-    $('#dDisc').value = 50;
+    $('#wDisc').value = 50;
+    $('#dDisc').value = 60;
+    $('#packsPerOrder').value = 1;
+    $('#shipCost').value = 7.95;
 
     $('#monthlyVolume').value = 10000;
     $('#oh_rows').innerHTML = '';
-    $('#oh_rows').appendChild(makeOhRow('Salaries', 25000));
+    $('#oh_rows').appendChild(makeOhRow('Salaries', 10000));
+    $('#oh_rows').appendChild(makeOhRow('RENT', 5000));
+    $('#oh_rows').appendChild(makeOhRow('INSURANCE', 1000));
+    $('#oh_rows').appendChild(makeOhRow('POWER', 500));
     
     ensureFullCapture(); 
     initializeTooltipEvents();
