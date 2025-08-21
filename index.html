@@ -1,938 +1,884 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Channel Calculator — Enhanced (with Commissions)</title>
-  <style>
-    :root{ color-scheme: light dark; }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{ margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial; background: Canvas; color: CanvasText; line-height:1.45; }
-    header{ padding:16px 20px; border-bottom:1px solid ButtonBorder; background: Canvas; position:sticky;top:0;z-index:3; }
-    header h1{margin:0 0 4px;font-size:20px;font-weight:700}
-    header .sub{color: GrayText;font-size:12px}
-    .wrap{ max-width:1280px; padding:20px; margin:0 auto; display:grid; grid-template-columns:1.15fr 1fr; gap:16px; }
-    @media (max-width: 1024px) { .wrap { grid-template-columns: 1fr; } }
-    section{ background: Field; border:1px solid ButtonBorder; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap: 10px; }
-    h2{margin:0 0 10px;font-size:16px}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-    .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
-    label{display:block;font-size:12px;color: GrayText;margin-bottom:6px}
-    input[type="text"],input[type="number"],input[type="checkbox"], select{ accent-color: AccentColor }
-    input[type="text"],input[type="number"], select{ width:100%; padding:9px 10px; border-radius:10px; border:1px solid ButtonBorder; background: Field; color: FieldText; font-size:14px; }
-    input[readonly]{ background: color-mix(in srgb, Field 92%, CanvasText 8%); color: color-mix(in srgb, FieldText 70%, CanvasText 30%); }
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .chip{ background: color-mix(in srgb, Field 85%, CanvasText 15%); border:1px solid ButtonBorder; padding:6px 8px; border-radius:10px; font-size:12px; color: GrayText; }
-    .toggle{display:flex;align-items:center;gap:8px;font-size:13px;color: CanvasText}
-    .toggle input{transform:scale(1.05)}
-    table{width:100%; border-collapse:collapse; font-size:13px; background: Field; border-radius:12px; overflow:hidden;}
-    th,td{padding:8px 10px;border-bottom:1px solid ButtonBorder;text-align:right;white-space:nowrap}
-    th:first-child,td:first-child{text-align:left}
-    .btn{ appearance:none; border:1px solid ButtonBorder; background: ButtonFace; color: ButtonText; padding:9px 12px; border-radius:10px; font-size:13px; cursor:pointer; }
-    .btn:hover{filter:brightness(1.05)}
-    .btn.primary{background: AccentColor; color: AccentColorText; border-color: AccentColor}
-    .muted{color: GrayText}
-    .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
-    .card{background: Field;border:1px solid ButtonBorder;border-radius:12px;padding:10px}
-    .salesperson-card { background: Canvas; border:1px solid ButtonBorder; border-radius:12px; padding:12px; margin-bottom:10px; }
-    .bonus-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: flex-end; margin-top: 8px; }
-    .card .big{font-size:19px;font-weight:700}
-    .thin{font-variant-numeric:tabular-nums;letter-spacing:.3px}
-    .disabled{opacity:.6; pointer-events: none;}
-    .note{font-size:12px;color: GrayText;margin-top:6px}
-    .flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .w-120{width:120px}
-    .w-90{width:90px}
-    .w-160{width:160px}
-    .scroller{overflow:auto}
-    .sticky-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
-    .small{font-size:12px}
-    .t{ position:relative; cursor:help; }
-    .t[tabindex="0"]:focus::after,
-    .t:hover::after{ content: attr(data-tip); position:absolute; z-index:10; left:0; top:100%; margin-top:6px; max-width:420px; background: CanvasText; color: Canvas; border: 1px solid ButtonBorder; padding:10px 12px; border-radius:10px; box-shadow: 0 6px 16px 0 color-mix(in srgb, CanvasText 15%, transparent); white-space:pre-wrap; }
-    .t[tabindex="0"]:focus::before,
-    .t:hover::before{ content:""; position:absolute; left:16px; top:100%; border:6px solid transparent; border-bottom-color: CanvasText; transform: translateY(-1px); }
-    .pill{padding:2px 6px;border:1px solid ButtonBorder;border-radius:999px;font-size:11px;color:GrayText}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Channel Calculator — ALL‑IN</title>
+<style>
+  :root{ color-scheme: light dark }
+  *{ box-sizing:border-box }
+  html,body{ height:100% }
+  body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica Neue,Arial; background:Canvas; color:CanvasText; line-height:1.45 }
+  header{ position:sticky; top:0; z-index:10; padding:12px 16px; border-bottom:1px solid ButtonBorder; background:Canvas }
+  header .row{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap }
+  .wrap{ max-width:1680px; margin:0 auto; padding:16px; display:grid; grid-template-columns: 1.35fr 1fr; gap:16px }
+  section{ background:Field; border:1px solid ButtonBorder; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:12px }
+  h2{ margin:0; font-size:16px; display:flex; align-items:center; gap:8px }
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+  .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
+  .grid-4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px }
+  label{ display:block; margin:0 0 6px; font-size:12px; color:GrayText }
+  input[type="text"],input[type="number"],select{ width:100%; padding:9px 10px; border-radius:10px; border:1px solid ButtonBorder; background:Field; color:FieldText; font-size:14px }
+  input[readonly]{ background: color-mix(in srgb, Field 92%, CanvasText 8%); color: color-mix(in srgb, FieldText 70%, CanvasText 30%) }
+  .btn{ appearance:none; border:1px solid ButtonBorder; background:ButtonFace; color:ButtonText; padding:8px 12px; border-radius:10px; font-size:13px; cursor:pointer }
+  .btn.primary{ background:AccentColor; color:AccentColorText; border-color:AccentColor }
+  .btn.small{ font-size:12px; padding:6px 10px }
+  .chip{ background: color-mix(in srgb, Field 85%, CanvasText 15%); border:1px solid ButtonBorder; padding:4px 8px; border-radius:999px; font-size:12px; color: GrayText }
+  .card{ background:Field; border:1px solid ButtonBorder; border-radius:12px; padding:10px; transition: opacity 0.3s ease; }
+  .kpi{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px }
+  .big{ font-weight:700; font-size:19px }
+  .thin{ font-variant-numeric:tabular-nums; letter-spacing:.3px }
+  .divider{ height:1px; background:ButtonBorder; margin:6px 0 }
+  .muted{ color:GrayText }
+  .w-90{ width:90px } .w-120{ width:120px } .w-160{ width:160px } .w-180{ width:180px } .w-220{ width:220px }
+
+  .q{ display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; border:1px solid ButtonBorder; font-size:12px; color:GrayText; cursor:help; user-select:none }
+  [data-tip]{ cursor:help }
+  .tip{ position:absolute; z-index:20; max-width:560px; background:Canvas; color:CanvasText; border:1px solid ButtonBorder; border-radius:10px; padding:10px 12px; box-shadow:0 6px 24px rgba(0,0,0,.25); font-size:12px; line-height:1.4; display:none }
+  .tip h3{ margin:0 0 6px; font-size:12px; color:GrayText }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px }
+  th,td{ padding:8px 10px; border-bottom:1px solid ButtonBorder; text-align:right; white-space:nowrap }
+  th:first-child,td:first-child{ text-align:left }
+</style>
 </head>
 <body>
-  <header>
-    <h1>Channel Calculator — Enhanced</h1>
-    <div class="sub">Now with Sales Commission tracking, bonuses, and flexible time period projections.</div>
-  </header>
-
-  <div class="wrap">
-    <!-- Left column: Inputs -->
-    <section>
-      <div>
-        <h2>Product Specifications</h2>
-        <div class="grid-3">
-          <div>
-            <label class="t" tabindex="0" data-tip="Number of tablets in each pack.">Pills per pack</label>
-            <input id="inp_pills" type="number" min="1" step="1" value="3">
-          </div>
-          <div>
-            <label class="t" tabindex="0" data-tip="Consumer-facing price; other channel prices are discounts from this.">Retail price per pack (USD)</label>
-            <input id="inp_retail_price" type="number" min="0" step="0.01" value="12.95">
-          </div>
-          <div class="toggle">
-            <input id="auto_calc" type="checkbox" checked>
-            <label class="t" tabindex="0" data-tip="When ON, results update as you type. When OFF, click Calculate / Recalculate to update and timestamp the run.">Auto‑recalculate</label>
-          </div>
-        </div>
-
-        <div class="grid-3" style="margin-top:10px">
-          <div>
-            <label class="t" tabindex="0" data-tip="All packaging components per pack. Use breakdown rows below; this field shows the rolled-up total.">Packaging cost per pack (USD)</label>
-            <input id="inp_packaging" type="number" min="0" step="0.01" value="0.50" readonly>
-          </div>
-          <div>
-            <label class="t" tabindex="0" data-tip="How many packs share one display.">Packs per display</label>
-            <input id="inp_packs_per_display" type="number" min="1" step="1" value="12">
-          </div>
-          <div>
-            <label class="t" id="tip_display_per_pack" tabindex="0" data-tip="Display per pack = $0.00 ÷ 0 = $0.00">Amortized display cost per pack (USD)</label>
-            <input id="out_display_per_pack" type="text" readonly>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin-top:14px">Ingredients (add up to five)
-          <span class="t chip" id="tip_ing_sum" tabindex="0" data-tip="No ingredients yet">Formula</span>
-        </h2>
-        <div id="ingredients"></div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="btn_add_ing" title="Add an ingredient row (maximum five)">Add ingredient</button>
-          <span class="note">Each ingredient: Name, milligrams per pill, cost per milligram.</span>
-        </div>
-      </div>
-
-      <div class="kpi">
-        <div class="card">
-          <div class="muted small">Total ingredient cost per pack <span class="t chip" id="tip_ing_total" tabindex="0" data-tip="—">i</span></div>
-          <div class="big thin" id="kpi_ing_cost">$0.00</div>
-        </div>
-        <div class="card">
-          <div class="muted small">Total COGS per pack (for Gross) <span class="t chip" id="tip_total_cost" tabindex="0" data-tip="—">i</span></div>
-          <div class="big thin" id="kpi_total_cost">$0.00</div>
-        </div>
-        <div class="card">
-          <div class="muted small">Fully loaded cost per mg <span class="t chip" id="tip_cost_per_mg" tabindex="0" data-tip="—">i</span></div>
-          <div class="big thin" id="kpi_cost_per_mg">$0.0000</div>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin-top:16px">Packaging Cost Breakdown
-          <span class="chip muted">up to 4 rows</span>
-        </h2>
-        <div id="pack_rows"></div>
-        <div class="row" style="margin-top:6px">
-          <button class="btn" id="btn_add_pack">Add packaging item</button>
-          <span class="note">Each row: Name + Cost per pack ($)</span>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin-top:16px">Display Cost Breakdown
-          <span class="chip muted">up to 4 rows</span>
-        </h2>
-        <div id="disp_rows"></div>
-        <div class="row" style="margin-top:6px">
-          <button class="btn" id="btn_add_disp">Add display item</button>
-          <span class="note">Each row: Name + Cost per display ($). Amortized by packs per display.</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Right column: Channels + Monthly Costs -->
-    <section>
-      <div>
-        <h2>Sales Channels</h2>
-        <div class="row">
-          <label class="toggle t" tabindex="0" data-tip="When enabled, the mix percentages are auto-normalized across the enabled channels. Disable to edit mix manually."><input id="chk_auto_mix" type="checkbox" checked> Auto-redistribute mix</label>
-        </div>
-
-        <div style="margin-top:8px" class="grid-3">
-          <!-- Retail -->
-          <div class="card" id="card_retail">
-            <div class="flex" style="justify-content:space-between">
-              <label class="toggle t" tabindex="0" data-tip="Turn retail channel on or off for blended calculations."><input id="use_retail" type="checkbox" checked> Retail</label>
-              <span class="chip">Price = retail input</span>
-            </div>
-            <div class="row" style="margin-top:8px">
-              <div>
-                <label class="t" tabindex="0" data-tip="Share of total volume expected through Retail.">Mix percent</label>
-                <input id="mix_retail" class="w-120" type="number" min="0" max="100" step="0.01" value="50">
-              </div>
-              <div>
-                <label class="t" id="tip_gm_retail" tabindex="0" data-tip="—">Gross margin (%)</label>
-                <input id="gm_retail" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" id="tip_profit_retail" tabindex="0" data-tip="—">Gross profit per pack</label>
-                <input id="profit_retail" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label>Revenue per pack</label>
-                <input id="rev_retail" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" id="tip_oper_profit_retail" tabindex="0" data-tip="—">Operating profit per pack</label>
-                <input id="oper_profit_retail" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_oper_gm_retail" tabindex="0" data-tip="—">Operating margin (%)</label>
-                <input id="oper_gm_retail" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" tabindex="0" data-tip="Shipping cost per retail order; converted to per-pack by packs per order.">Shipping per retail order ($)</label>
-                <input id="ship_per_order" class="w-120" type="number" min="0" step="0.01" value="2.50">
-              </div>
-              <div>
-                <label class="t" tabindex="0" data-tip="Assumed packs per retail order for shipping allocation.">Packs per retail order</label>
-                <input id="packs_per_order" class="w-120" type="number" min="1" step="1" value="1">
-              </div>
-              <label class="toggle t" tabindex="0" data-tip="Include shipping in Retail operating costs? Affects Operating profit/margin for Retail only."><input id="include_shipping" type="checkbox" checked> Include shipping</label>
-            </div>
-          </div>
-
-          <!-- Wholesale -->
-          <div class="card" id="card_wholesale">
-            <div class="flex" style="justify-content:space-between">
-              <label class="toggle t" tabindex="0" data-tip="Turn wholesale channel on or off for blended calculations."><input id="use_wholesale" type="checkbox" checked> Wholesale</label>
-              <span class="chip t" id="tip_price_wholesale" tabindex="0" data-tip="—">Pricing rule</span>
-            </div>
-            <div class="row" style="margin-top:8px">
-              <div>
-                <label class="t" tabindex="0" data-tip="Share of total volume through Wholesale.">Mix percent</label>
-                <input id="mix_wholesale" class="w-120" type="number" min="0" max="100" step="0.01" value="30">
-              </div>
-              <div>
-                <label class="t" tabindex="0" data-tip="Percent discount from retail to arrive at wholesale price.">Wholesale discount (%)</label>
-                <input id="disc_wholesale" class="w-120" type="number" min="0" max="100" step="0.01" value="25">
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label>Wholesale price per pack</label>
-                <input id="price_wholesale" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_gm_wholesale" tabindex="0" data-tip="—">Gross margin (%)</label>
-                <input id="gm_wholesale" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" id="tip_profit_wholesale" tabindex="0" data-tip="—">Gross profit per pack</label>
-                <input id="profit_wholesale" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_partner_retailer" tabindex="0" data-tip="—">Retailer profit per pack</label>
-                <input id="partner_profit_wh" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" id="tip_oper_profit_wholesale" tabindex="0" data-tip="—">Operating profit per pack</label>
-                <input id="oper_profit_wholesale" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_oper_gm_wholesale" tabindex="0" data-tip="—">Operating margin (%)</label>
-                <input id="oper_gm_wholesale" class="w-120" type="text" readonly>
-              </div>
-            </div>
-          </div>
-
-          <!-- Distributor -->
-          <div class="card" id="card_distributor">
-            <div class="flex" style="justify-content:space-between">
-              <label class="toggle t" tabindex="0" data-tip="Turn distributor channel on or off for blended calculations."><input id="use_distributor" type="checkbox" checked> Distributor</label>
-              <span class="chip t" id="tip_price_distributor" tabindex="0" data-tip="—">Pricing rule</span>
-            </div>
-            <div class="row" style="margin-top:8px">
-              <div>
-                <label class="t" tabindex="0" data-tip="Share of total volume through Distributor.">Mix percent</label>
-                <input id="mix_distributor" class="w-120" type="number" min="0" max="100" step="0.01" value="20">
-              </div>
-              <div>
-                <label class="t" tabindex="0" data-tip="Percent discount from retail to arrive at distributor price.">Distributor discount (%)</label>
-                <input id="disc_distributor" class="w-120" type="number" min="0" max="100" step="0.01" value="40">
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label>Distributor price per pack</label>
-                <input id="price_distributor" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_gm_distributor" tabindex="0" data-tip="—">Gross margin (%)</label>
-                <input id="gm_distributor" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" id="tip_profit_distributor" tabindex="0" data-tip="—">Gross profit per pack</label>
-                <input id="profit_distributor" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_partner_distributor" tabindex="0" data-tip="—">Distributor profit per pack</label>
-                <input id="partner_profit_dist" class="w-120" type="text" readonly>
-              </div>
-            </div>
-            <div class="row">
-              <div>
-                <label class="t" id="tip_oper_profit_distributor" tabindex="0" data-tip="—">Operating profit per pack</label>
-                <input id="oper_profit_distributor" class="w-120" type="text" readonly>
-              </div>
-              <div>
-                <label class="t" id="tip_oper_gm_distributor" tabindex="0" data-tip="—">Operating margin (%)</label>
-                <input id="oper_gm_distributor" class="w-120" type="text" readonly>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin-top:14px">Monthly Costs (Operating Overhead)</h2>
-        <div class="row">
-          <div>
-              <label class="t" tabindex="0" data-tip="Estimated packs produced/sold per month for overhead allocation.">Monthly pack volume</label>
-              <input id="monthly_volume" type="number" min="1" step="1" value="1000">
-          </div>
-        </div>
-        <div id="overhead_rows" style="margin-top:8px"></div>
-        <div class="row" style="margin-top:6px">
-          <button class="btn" id="btn_add_overhead">Add overhead item</button>
-          <span class="note">Each row: Name + Monthly Cost ($)</span>
-        </div>
-
-        <div class="row" style="margin-top:8px">
-          <label class="toggle"><input id="oh_retail" type="checkbox" checked> Include overhead in Retail</label>
-          <label class="toggle"><input id="oh_wholesale" type="checkbox" checked> Include overhead in Wholesale</label>
-          <label class="toggle"><input id="oh_distributor" type="checkbox" checked> Include overhead in Distributor</label>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin-top:14px">Sales Commissions</h2>
-        <div class="note">Define up to 10 salespersons, their commission structures, and target bonuses.</div>
-        <div id="salespersons_wrap" style="margin-top:8px"></div>
-        <div class="row" style="margin-top:6px">
-            <button class="btn" id="btn_add_salesperson">Add Salesperson</button>
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:10px; justify-content:space-between">
-        <div class="flex">
-          <button class="btn primary" id="btn_calc">Calculate / Recalculate</button>
-          <span class="note" id="last_calc">Last calculated: —</span>
-        </div>
-        <span class="muted small">Scenarios now save commission data.</span>
-      </div>
-
-      <div>
-        <h2 style="margin-top:14px">Blended KPIs</h2>
-        <div class="kpi">
-          <div class="card">
-            <div class="muted small">Blended revenue per pack <span class="t chip" id="tip_blended_rev" tabindex="0" data-tip="—">i</span></div>
-            <div class="big thin" id="kpi_blended_rev">$0.00</div>
-          </div>
-          <div class="card">
-            <div class="muted small">Blended gross profit per pack <span class="t chip" id="tip_blended_profit" tabindex="0" data-tip="—">i</span></div>
-            <div class="big thin" id="kpi_blended_profit">$0.00</div>
-          </div>
-          <div class="card">
-            <div class="muted small">Blended gross margin (%) <span class="t chip" id="tip_blended_gm" tabindex="0" data-tip="—">i</span></div>
-            <div class="big thin" id="kpi_blended_gm">0.00%</div>
-          </div>
-        </div>
-
-        <div class="kpi" style="margin-top:10px">
-          <div class="card">
-            <div class="muted small">Blended operating profit per pack <span class="t chip" id="tip_blended_op" tabindex="0" data-tip="—">i</span></div>
-            <div class="big thin" id="kpi_blended_oper">$0.00</div>
-          </div>
-          <div class="card">
-            <div class="muted small">Blended operating margin (%) <span class="t chip" id="tip_blended_opm" tabindex="0" data-tip="—">i</span></div>
-            <div class="big thin" id="kpi_blended_opm">0.00%</div>
-          </div>
-          <div class="card">
-            <div class="muted small">Overhead per pack <span class="t chip" id="tip_oh_per_pack" tabindex="0" data-tip="—">i</span></div>
-            <div class="big thin" id="kpi_oh_per_pack">$0.00</div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h2 style="margin-top:14px">Commission Projections</h2>
-        <div class="row">
-            <div>
-                <label class="t" tabindex="0" data-tip="Calculate commissions over this time period. All figures will be scaled from the monthly inputs.">Projection Period</label>
-                <select id="projection_period" class="btn w-160">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly" selected>Monthly</option>
-                    <option value="yearly">Yearly</option>
-                </select>
-            </div>
-        </div>
-        <div class="scroller" style="margin-top:10px; max-height:320px;">
-            <table id="commissions_tbl">
-                <thead>
-                    <tr>
-                        <th>Salesperson</th>
-                        <th>Base Commission</th>
-                        <th>Bonuses Earned</th>
-                        <th>Total Pay</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="kpi" style="margin-top:10px">
-            <div class="card">
-                <div class="muted small">Total Commissions Paid <span class="t chip" id="tip_total_comm" tabindex="0" data-tip="—">i</span></div>
-                <div class="big thin" id="kpi_total_comm">$0.00</div>
-            </div>
-            <div class="card">
-                <div class="muted small">Commission as % of Gross <span class="t chip" id="tip_comm_pct_gross" tabindex="0" data-tip="—">i</span></div>
-                <div class="big thin" id="kpi_comm_pct_gross">0.00%</div>
-            </div>
-            <div class="card">
-                <div class="muted small">Commission as % of Op Profit <span class="t chip" id="tip_comm_pct_oper" tabindex="0" data-tip="—">i</span></div>
-                <div class="big thin" id="kpi_comm_pct_oper">0.00%</div>
-            </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Full width: Scenarios -->
-    <section style="grid-column:1 / -1;">
-      <div class="flex" style="justify-content:space-between; align-items:flex-end">
-        <div>
-          <h2>Scenarios</h2>
-          <div class="note">Save inputs and computed fields. Load to restore. Stored in your browser.</div>
-        </div>
-        <div class="sticky-actions">
-          <input id="scenario_label" class="w-160" type="text" placeholder="Label (optional)">
-          <button class="btn primary" id="btn_save" title="Save the current configuration">Save scenario</button>
-          <button class="btn" id="btn_download" title="Export all saved scenarios as a comma-separated values file">Download CSV</button>
-          <button class="btn" id="btn_clear" title="Remove all saved scenarios">Clear all</button>
-        </div>
-      </div>
-      <div class="scroller" style="margin-top:10px; max-height:420px;">
-        <table id="scenarios_tbl">
-          <thead>
-            <tr>
-              <th>Saved</th>
-              <th>Label</th>
-              <th>Retail Price</th>
-              <th>Total COGS</th>
-              <th>Blended GM%</th>
-              <th>Blended Op M%</th>
-              <th>Total Comm.</th>
-              <th>Total Bonuses</th>
-              <th>Comm % Gross</th>
-              <th>Comm % Op Profit</th>
-              <th># Salespersons</th>
-              <th>Load</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+<header>
+  <div class="row">
+    <div class="row" style="gap:8px">
+      <strong>Channel Calculator — ALL‑IN</strong>
+      <span class="chip" id="fmt_demo">Money format…</span>
+      <span class="chip" id="status">Ready</span>
+    </div>
+    <div class="row">
+      <button id="btn_choose_cols" class="btn">Choose columns</button>
+      <select id="capture_sel" class="w-220"><option value="__full__">Full analytics (default)</option></select>
+      <label class="row"><input id="autoCalc" type="checkbox" checked> Auto‑recalculate</label>
+      <button id="recalcBtn" class="btn primary">Calculate / Recalculate</button>
+    </div>
   </div>
+</header>
+
+<div class="wrap">
+  <section>
+    <h2>Product Specifications <span class="q" data-tip="prod">?</span></h2>
+    <div class="grid-3">
+      <div><label>Pills per pack <span class="q" data-tip="pills">?</span></label><input id="pills" type="number" value="3" data-tip="pills_input"></div>
+      <div><label>Retail price per pack (USD) <span class="q" data-tip="price">?</span></label><input id="retailPrice" type="number" step="0.01" value="12.95" data-tip="price_input"></div>
+      <div><label>Packs per display <span class="q" data-tip="packsDisp">?</span></label><input id="packsPerDisplay" type="number" value="12" data-tip="packsDisp_input"></div>
+    </div>
+
+    <div class="grid-3">
+      <div><label>Packaging cost per pack <span class="q" data-tip="packCost">?</span></label><input id="packCostPerPack" data-tip="packCost" type="text" value="$0" readonly></div>
+      <div><label>Amortized display cost per pack <span class="q" data-tip="dispCost">?</span></label><input id="dispCostPerPack" data-tip="dispCost" type="text" value="$0" readonly></div>
+      <div class="row"><span class="muted">Hover any <b>?</b> or <b>result value</b> for the formula with your numbers</span></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Ingredients <span class="q" data-tip="ingredients">?</span></h2>
+    <div id="ingredients" class="grid-4"></div>
+    <div class="row"><button class="btn" id="add_ing">Add ingredient</button><span class="muted">Name • milligrams per pill • cost per milligram</span></div>
+
+    <div class="grid-2">
+      <div class="card"><div class="muted">Total ingredient cost per pack <span class="q" data-tip="k_ing">?</span></div><div id="kpi_ing" data-tip="k_ing" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Total cost of goods per pack (for Gross) <span class="q" data-tip="k_cogs">?</span></div><div id="kpi_cogs" data-tip="k_cogs" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Fully loaded cost per milligram <span class="q" data-tip="k_mg">?</span></div><div id="kpi_costmg" data-tip="k_mg" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Fully loaded cost per gram <span class="q" data-tip="k_g">?</span></div><div id="kpi_costg" data-tip="k_g" class="big thin">$0</div></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Packaging Cost Breakdown <span class="q" data-tip="packRows">?</span></h2>
+    <div id="pack_rows"></div>
+    <div class="row"><button class="btn" id="add_pack">Add packaging item</button><span class="muted">Name • Cost / pack</span></div>
+
+    <h2>Display Cost Breakdown <span class="q" data-tip="dispRows">?</span></h2>
+    <div id="disp_rows"></div>
+    <div class="row"><button class="btn" id="add_disp">Add display item</button><span class="muted">Name • Cost / display</span></div>
+  </section>
+
+  <section>
+    <h2>Sales Channels <span class="q" data-tip="channels">?</span></h2>
+    <div class="row" style="justify-content: space-between;">
+        <div class="row" id="channel_toggles">
+          <label class="row"><input id="includeR" type="checkbox" checked> Include Retail</label>
+          <label class="row"><input id="includeW" type="checkbox" checked> Include Wholesale</label>
+          <label class="row"><input id="includeD" type="checkbox" checked> Include Distributor</label>
+        </div>
+        <label class="row"><input id="autoMix" type="checkbox" checked> Auto‑redistribute mix</label>
+    </div>
+
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><strong data-tip="ch_retail">Retail</strong><span class="muted">Price = Retail</span></div>
+        <div class="row">
+          <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixR" class="w-120" type="number" value="50" data-tip="mix_input"></div>
+          <div><label>Gross margin %</label><input id="gmR" data-tip="gmR" class="w-120" type="text" value="0%" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Gross profit / pack</label><input id="gpR" data-tip="gpR" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Revenue / pack</label><input id="revR" data-tip="revR" class="w-120" type="text" value="$0" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Operating profit / pack</label><input id="opR" data-tip="opR" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Operating margin %</label><input id="omR" data-tip="omR" class="w-120" type="text" value="0%" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Shipping / retail order (USD) <span class="q" data-tip="shipCost">?</span></label><input id="shipCost" class="w-120" type="number" step="0.01" value="2.50" data-tip="shipCost_input"></div>
+          <div><label>Packs / retail order</label><input id="packsPerOrder" class="w-120" type="number" value="1" data-tip="packsPerOrder_input"></div>
+          <label class="row"><input id="includeShip" type="checkbox" checked> Include shipping</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><strong data-tip="ch_wholesale">Wholesale</strong><span class="muted">Retail − Discount</span></div>
+        <div class="row">
+          <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixW" class="w-120" type="number" value="30" data-tip="mix_input"></div>
+          <div><label>Wholesale discount %</label><input id="wDisc" class="w-120" type="number" step="0.01" value="25" data-tip="wDisc_input"></div>
+        </div>
+        <div class="row">
+          <div><label>Wholesale price / pack</label><input id="wPrice" data-tip="priceW" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Gross margin %</label><input id="gmW" data-tip="gmW" class="w-120" type="text" value="0%" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Gross profit / pack</label><input id="gpW" data-tip="gpW" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Retailer profit / pack</label><input id="retailerProfit" data-tip="retailerProfit" class="w-120" type="text" value="$0" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Operating profit / pack</label><input id="opW" data-tip="opW" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Operating margin %</label><input id="omW" data-tip="omW" class="w-120" type="text" value="0%" readonly></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><strong data-tip="ch_distributor">Distributor</strong><span class="muted">Retail − Discount</span></div>
+        <div class="row">
+          <div><label>Mix percent <span class="q" data-tip="mix">?</span></label><input id="mixD" class="w-120" type="number" value="20" data-tip="mix_input"></div>
+          <div><label>Distributor discount %</label><input id="dDisc" class="w-120" type="number" step="0.01" value="40" data-tip="dDisc_input"></div>
+        </div>
+        <div class="row">
+          <div><label>Distributor price / pack</label><input id="dPrice" data-tip="priceD" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Gross margin %</label><input id="gmD" data-tip="gmD" class="w-120" type="text" value="0%" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Gross profit / pack</label><input id="gpD" data-tip="gpD" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Distributor profit / pack</label><input id="distProfit" data-tip="distProfit" class="w-120" type="text" value="$0" readonly></div>
+        </div>
+        <div class="row">
+          <div><label>Operating profit / pack</label><input id="opD" data-tip="opD" class="w-120" type="text" value="$0" readonly></div>
+          <div><label>Operating margin %</label><input id="omD" data-tip="omD" class="w-120" type="text" value="0%" readonly></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Monthly Costs (Operating Overhead) <span class="q" data-tip="overhead">?</span></h2>
+    <div class="row">
+      <div><label>Monthly pack volume</label><input id="monthlyVolume" class="w-160" type="number" value="1000" data-tip="monthlyVolume_input"></div>
+    </div>
+    <div id="oh_rows"></div>
+    <div class="row"><button class="btn" id="add_oh">Add overhead item</button><span class="muted">Name • Monthly cost</span></div>
+    <div class="row">
+      <label class="row"><input id="ohR" type="checkbox" checked> Include overhead in Retail</label>
+      <label class="row"><input id="ohW" type="checkbox" checked> Include overhead in Wholesale</label>
+      <label class="row"><input id="ohD" type="checkbox" checked> Include overhead in Distributor</label>
+    </div>
+
+    <div class="divider"></div>
+
+    <h2>Sales Commissions <span class="q" data-tip="comm">?</span></h2>
+    <div id="salespersons"></div>
+    <div class="row"><button class="btn" id="add_sp">Add salesperson</button><span class="muted">Channels • Commission type • Value • Bonuses</span></div>
+
+    <div id="projTable" class="card"></div>
+    
+    <div class="divider"></div>
+
+    <h2>Blended Key Performance Indicators</h2>
+    <div class="kpi">
+      <div class="card"><div class="muted">Blended revenue per pack <span class="q" data-tip="brev">?</span></div><div id="kpi_brev" data-tip="brev" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Blended gross profit per pack <span class="q" data-tip="bgpp">?</span></div><div id="kpi_bgpp" data-tip="bgpp" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Blended gross margin (percent) <span class="q" data-tip="bgmp">?</span></div><div id="kpi_bgmp" data-tip="bgmp" class="big thin">0%</div></div>
+    </div>
+    <div class="kpi">
+      <div class="card"><div class="muted">Overhead per pack <span class="q" data-tip="ohpp">?</span></div><div id="kpi_ohpp" data-tip="ohpp" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Blended operating profit per pack <span class="q" data-tip="bopp">?</span></div><div id="kpi_bopp" data-tip="bopp" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Blended operating margin (percent) <span class="q" data-tip="bomp">?</span></div><div id="kpi_bomp" data-tip="bomp" class="big thin">0%</div></div>
+    </div>
+    
+    <div class="divider"></div>
+    
+    <h2>Commission Projections</h2>
+    <div id="comm_proj_table" class="card"></div>
+
+  </section>
+
+  <section style="grid-column:1 / -1">
+    <div class="row" style="justify-content:space-between; align-items:flex-end">
+      <div>
+        <h2>Scenarios (v6) <span class="q" data-tip="scenarios">?</span></h2>
+        <div class="muted">Save inputs & outputs with timestamps. Capture controls which columns are stored.</div>
+      </div>
+      <div class="row">
+        <input id="scenario_label" class="w-160" type="text" placeholder="Scenario label">
+        <button id="btn_save" class="btn primary">Save scenario</button>
+        <button id="btn_csv" class="btn">Download CSV</button>
+        <button id="btn_clear" class="btn">Clear all</button>
+      </div>
+    </div>
+
+    <div class="scroller" style="max-height:420px; overflow:auto">
+      <table id="scenarios_tbl">
+        <thead id="scenarios_head"></thead>
+        <tbody id="scenarios_body"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div id="tip" class="tip"></div>
+
+<div id="modal" style="display:none; position:fixed; inset:0; background:color-mix(in srgb, Canvas 70%, CanvasText 30%); align-items:center; justify-content:center; z-index:50">
+  <div style="background:Field; border:1px solid ButtonBorder; border-radius:16px; padding:16px; width:min(980px, 92vw); max-height:85vh; overflow:auto; display:flex; flex-direction:column; gap:12px">
+    <div class="row" style="justify-content:space-between"><strong>Choose columns to capture</strong><button id="modal_close" class="btn small">Close</button></div>
+    <div id="cols_groups"></div>
+    <div class="row" style="justify-content:flex-end">
+      <input id="cap_name" class="w-220" placeholder="Name this capture (e.g., Sales Focus)">
+      <button id="save_capture" class="btn primary">Save capture</button>
+    </div>
+  </div>
+</div>
 
 <script>
-(function(){
-  // --- Utilities ---
-  const $ = s=>document.querySelector(s);
-  const $$ = s=>Array.from(document.querySelectorAll(s));
-  const money = n => "$" + (isFinite(n) ? Number(n).toFixed(2) : "0.00");
-  const pct2  = n => (isFinite(n) ? Number(n).toFixed(2) : "0.00") + "%";
-  function valNum(el){ const v = parseFloat((el && el.value)!=null ? el.value : el); return isFinite(v) ? v : 0; }
-  const setTip = (id, text)=>{ const el = document.getElementById(id); if(el){ el.setAttribute('data-tip', text); } };
-  const SCENARIO_KEY = 'channel_calc_scenarios_v5'; // Incremented version for new structure
+// ===== Utilities =====
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function num(v){ const x = Number(v); return isFinite(x)? x : 0 }
+function pct(x){ if(!isFinite(x)||x===0) return '0%'; return (x*100).toFixed(1).replace(/\.0$/, '')+'%'}
+function money(n) { return '$' + (Number(n) || 0).toFixed(2); }
+function money3(n){ const x = Number(n||0); const s = Math.abs(x).toFixed(3); let out = s.replace(/\.([0-9]{2})0$/, '.$1'); out = out.replace(/\.00$/, ''); out = out.replace(/\B(?=(\d{3})+(?!\d))/g, ','); return (x<0?'-':'')+'$'+out }
+(function(){ const demo=[12,12.5,12.345,12.340,0].map(money3).join(' · '); $('#fmt_demo').textContent='Formatter: '+demo })();
 
-  let commissionResults = []; // Globally accessible results for snapshotting
+// ===== Tooltip engine =====
+const TIP = $('#tip');
+const T = {};
 
-  // --- Auto calc gate ---
-  const autoCalc = ()=> $('#auto_calc').checked;
-  let dirty = false;
-  function onMaybeCalc(){ if(autoCalc()) computeAll(); else dirty=true; }
+function showTip(key, evt){ 
+    const target = evt.target.closest('[data-tip], .q');
+    if (!target) return;
+    const tipKey = target.getAttribute('data-tip');
+    const t = T[tipKey]; 
+    if(!t) return; 
+    TIP.innerHTML = '<h3>'+t.title+'</h3><div>'+t.body()+'</div>'; 
+    const r=target.getBoundingClientRect(); 
+    TIP.style.display='block'; 
+    TIP.style.top=(r.top+window.scrollY+r.height+6)+'px'; 
+    TIP.style.left=Math.min(r.left+window.scrollX+10, window.scrollX+window.innerWidth-TIP.offsetWidth-20)+'px' 
+}
+function hideTip(){ TIP.style.display='none' }
 
-  // --- Dynamic Row Management ---
-  function createDynamicRow(container, pref, options, onAddCallback) {
-      if (container.children.length >= options.max) return;
-      const row = document.createElement('div');
-      row.className = options.rowClass;
-      row.innerHTML = options.template(pref, container.children.length + 1);
-      container.appendChild(row);
-      
-      row.querySelectorAll('input, select').forEach(input => input.addEventListener('input', onMaybeCalc));
-      row.querySelector('[data-act="rm"]').addEventListener('click', () => {
-          row.remove();
-          onMaybeCalc();
-      });
-      if(onAddCallback) onAddCallback(row);
-  }
-
-  // --- Ingredients ---
-  const ingWrap = $("#ingredients");
-  const ingOptions = { max: 5, rowClass: 'grid-4', template: (pref = {}, idx) => `<div><label class="t" tabindex="0" data-tip="Free text name for your tracking.">Ingredient ${idx} name</label><input type="text" class="ing_name" value="${pref.name||""}"></div><div><label class="t" tabindex="0" data-tip="Active amount per pill.">Milligrams per pill</label><input type="number" class="ing_mg" min="0" step="0.0001" value="${pref.mg||0}"></div><div><label class="t" tabindex="0" data-tip="Cost in dollars per milligram.">Cost per milligram (USD)</label><input type="number" class="ing_cpmg" min="0" step="0.000001" value="${pref.cpmg||0}"></div><div><label>&nbsp;</label><button class="btn w-90" data-act="rm" title="Remove this ingredient">Remove</button></div>` };
-  function addIngredientRow(pref={}) { createDynamicRow(ingWrap, pref, ingOptions); }
-  $("#btn_add_ing").addEventListener("click", e => { e.preventDefault(); addIngredientRow(); });
-
-  // --- Packaging, Display, Overhead rows ---
-  const packWrap = $('#pack_rows'), dispWrap = $('#disp_rows'), overheadWrap = $('#overhead_rows');
-  const simpleRowOptions = (max, name) => ({ max, rowClass: 'row', template: (pref = {}) => `<input type="text" class="${name}_name w-160" placeholder="Name" value="${pref.name||''}"> <input type="number" class="${name}_cost w-120" step="0.01" min="0" value="${pref.cost||0}"> <button class="btn small" data-act="rm">Remove</button>` });
-  function addPackRow(pref={}) { createDynamicRow(packWrap, pref, simpleRowOptions(4, 'pack')); }
-  function addDispRow(pref={}) { createDynamicRow(dispWrap, pref, simpleRowOptions(4, 'disp')); }
-  function addOverheadRow(pref={}) { createDynamicRow(overheadWrap, pref, simpleRowOptions(10, 'overhead')); }
-  $('#btn_add_pack').addEventListener('click', e => { e.preventDefault(); addPackRow(); });
-  $('#btn_add_disp').addEventListener('click', e => { e.preventDefault(); addDispRow(); });
-  $('#btn_add_overhead').addEventListener('click', e => { e.preventDefault(); addOverheadRow(); });
-
-  // --- Salespersons and Bonuses ---
-  const salespersonsWrap = $('#salespersons_wrap');
-  const bonusTemplate = (pref = {}) => `
-    <div class="bonus-row">
-        <div>
-            <label>Bonus Type</label>
-            <select class="bonus_type btn">
-                <option value="units" ${pref.type === 'units' ? 'selected' : ''}>Units Sold</option>
-                <option value="gross_rev" ${pref.type === 'gross_rev' ? 'selected' : ''}>Gross Revenue</option>
-                <option value="gross_profit" ${pref.type === 'gross_profit' ? 'selected' : ''}>Gross Profit</option>
-            </select>
-        </div>
-        <div>
-            <label>Target</label>
-            <input type="number" class="bonus_target" min="0" value="${pref.target || 0}">
-        </div>
-        <div>
-            <label>Bonus ($)</label>
-            <input type="number" class="bonus_amount" min="0" value="${pref.amount || 0}">
-        </div>
-        <button class="btn small" data-act="rm">Remove</button>
-    </div>`;
-
-  const salespersonTemplate = (pref = {}) => `
-    <div class="row">
-        <input type="text" class="salesperson_name" placeholder="Salesperson Name" value="${pref.name || ''}">
-        <button class="btn" data-act="rm">Remove Person</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-        <label class="toggle"><input type="checkbox" class="sp_chan_retail" ${pref.channels?.retail ? 'checked' : ''}> Retail</label>
-        <label class="toggle"><input type="checkbox" class="sp_chan_wholesale" ${pref.channels?.wholesale ? 'checked' : ''}> Wholesale</label>
-        <label class="toggle"><input type="checkbox" class="sp_chan_distributor" ${pref.channels?.distributor ? 'checked' : ''}> Distributor</label>
-    </div>
-    <div class="grid-2" style="margin-top:8px">
-        <div>
-            <label>Commission Type</label>
-            <select class="commission_type btn">
-                <option value="pct_gross" ${pref.commissionType === 'pct_gross' ? 'selected' : ''}>% of Gross Revenue</option>
-                <option value="usd_pack" ${pref.commissionType === 'usd_pack' ? 'selected' : ''}>$ per Pack Sold</option>
-            </select>
-        </div>
-        <div>
-            <label>Commission Value</label>
-            <input type="number" class="commission_value" min="0" step="0.01" value="${pref.commissionValue || 0}">
-        </div>
-    </div>
-    <div style="margin-top:8px">
-        <label>Target Bonuses</label>
-        <div class="bonuses_wrap"></div>
-        <button class="btn small" data-act="add_bonus" style="margin-top:4px">Add Bonus</button>
-    </div>`;
-
-  function addBonusRow(wrap, pref = {}) {
-      const bonusRow = document.createElement('div');
-      bonusRow.innerHTML = bonusTemplate(pref);
-      wrap.appendChild(bonusRow);
-      bonusRow.querySelector('[data-act="rm"]').addEventListener('click', () => {
-          bonusRow.remove();
-          onMaybeCalc();
-      });
-      bonusRow.querySelectorAll('input, select').forEach(el => el.addEventListener('input', onMaybeCalc));
-  }
-
-  const salespersonOptions = { max: 10, rowClass: 'salesperson-card', template: salespersonTemplate };
-  function addSalespersonRow(pref = {}) {
-      createDynamicRow(salespersonsWrap, pref, salespersonOptions, (row) => {
-          const bonusesWrap = row.querySelector('.bonuses_wrap');
-          row.querySelector('[data-act="add_bonus"]').addEventListener('click', (e) => {
-              e.preventDefault();
-              addBonusRow(bonusesWrap);
-          });
-          if (pref.bonuses) {
-              pref.bonuses.forEach(bonusPref => addBonusRow(bonusesWrap, bonusPref));
-          }
-      });
-  }
-  $('#btn_add_salesperson').addEventListener('click', e => { e.preventDefault(); addSalespersonRow(); });
-
-
-  // --- Element refs ---
-  const pills=$('#inp_pills'), retailPrice=$('#inp_retail_price'), packsPerDisplay=$('#inp_packs_per_display'), packagingTotal=$('#inp_packaging'), displayPerPack=$('#out_display_per_pack');
-  const useRetail=$('#use_retail'), useWholesale=$('#use_wholesale'), useDistributor=$('#use_distributor');
-  const mixRetail=$('#mix_retail'), mixWholesale=$('#mix_wholesale'), mixDistributor=$('#mix_distributor');
-  const discWholesale=$('#disc_wholesale'), discDistributor=$('#disc_distributor');
-  const priceWholesale=$('#price_wholesale'), priceDistributor=$('#price_distributor');
-  const profitRetail=$('#profit_retail'), profitWholesale=$('#profit_wholesale'), profitDistributor=$('#profit_distributor');
-  const gmRetail=$('#gm_retail'), gmWholesale=$('#gm_wholesale'), gmDistributor=$('#gm_distributor');
-  const operProfitRetail=$('#oper_profit_retail'), operProfitWholesale=$('#oper_profit_wholesale'), operProfitDistributor=$('#oper_profit_distributor');
-  const operGmRetail=$('#oper_gm_retail'), operGmWholesale=$('#oper_gm_wholesale'), operGmDistributor=$('#oper_gm_distributor');
-  const partnerProfitWh=$('#partner_profit_wh'), partnerProfitDist=$('#partner_profit_dist');
-  const chkAutoMix=$('#chk_auto_mix');
-  const shipPerOrder=$('#ship_per_order'), packsPerOrder=$('#packs_per_order'), includeShipping=$('#include_shipping');
-  const kIngr=$('#kpi_ing_cost'), kTotal=$('#kpi_total_cost'), kCostPerMg=$('#kpi_cost_per_mg');
-  const kBlendRev=$('#kpi_blended_rev'), kBlendProfit=$('#kpi_blended_profit'), kBlendGM=$('#kpi_blended_gm');
-  const kBlendOper=$('#kpi_blended_oper'), kBlendOPM=$('#kpi_blended_opm');
-  const kOHPerPack=$('#kpi_oh_per_pack');
-  const mv=$('#monthly_volume');
-  const ohR=$('#oh_retail'), ohW=$('#oh_wholesale'), ohD=$('#oh_distributor');
-  const tblBody=$('#scenarios_tbl tbody');
-  const btnSave=$('#btn_save'), btnDownload=$('#btn_download'), btnClear=$('#btn_clear'), lbl=$('#scenario_label');
-  const btnCalc=$('#btn_calc'), lastCalc=$('#last_calc');
-  const projectionPeriod = $('#projection_period');
-  const commissionsTblBody = $('#commissions_tbl tbody');
-  const kTotalComm = $('#kpi_total_comm'), kCommPctGross = $('#kpi_comm_pct_gross'), kCommPctOper = $('#kpi_comm_pct_oper');
-
-  // --- Mix & channel helpers ---
-  function enabledChannels(){
-    return [
-      {key:"Retail", id:"retail", use:useRetail.checked, mix:mixRetail},
-      {key:"Wholesale", id:"wholesale", use:useWholesale.checked, mix:mixWholesale},
-      {key:"Distributor", id:"distributor", use:useDistributor.checked, mix:mixDistributor}
-    ];
-  }
-
-  function normalizeMix(){
-    const chans = enabledChannels();
-    const enabled = chans.filter(c=>c.use);
-    if(chkAutoMix.checked){
-      let sum = enabled.reduce((s,c)=> s+valNum(c.mix), 0);
-      if(sum<=0 && enabled.length > 0){ const each = 100/enabled.length; enabled.forEach(c=> c.mix.value = each.toFixed(2)); }
-      else if (sum > 0) { enabled.forEach(c=> c.mix.value = (valNum(c.mix)/sum*100).toFixed(2)); }
-      chans.forEach(c=> { c.mix.readOnly=true; c.mix.style.pointerEvents = 'none'; });
-    }else{
-      chans.forEach(c=>{c.mix.readOnly=!c.use; c.mix.style.pointerEvents = c.use ? 'auto' : 'none';});
-    }
-  }
-
-  function toggleChannelCards(){
-    $('#card_retail').classList.toggle('disabled', !useRetail.checked);
-    $('#card_wholesale').classList.toggle('disabled', !useWholesale.checked);
-    $('#card_distributor').classList.toggle('disabled', !useDistributor.checked);
-  }
-
-  // --- Breakdown helpers ---
-  function sumBreakdown(container, nameClass, costClass) {
-      let sum = 0, lines = [];
-      [...container.children].forEach(row => {
-          const name = row.querySelector(nameClass).value || 'Item';
-          const cost = parseFloat(row.querySelector(costClass).value) || 0;
-          sum += cost;
-          if (cost > 0) lines.push(`${name}: ${money(cost)}`);
-      });
-      return { sum, lines };
-  }
-
-  // --- Core compute ---
-  function computeAll(){
-    dirty=false; lastCalc.textContent = `Last calculated: ${new Date().toLocaleTimeString()}`;
-
-    // --- Product & COGS ---
-    const nPills = Math.max(0, Math.floor(valNum(pills)));
-    const pack = sumBreakdown(packWrap, '.pack_name', '.pack_cost');
-    packagingTotal.value = pack.sum.toFixed(2);
-    const disp = sumBreakdown(dispWrap, '.disp_name', '.disp_cost');
-    const ppd = Math.max(1, Math.floor(valNum(packsPerDisplay)));
-    const dispPer = disp.sum / ppd;
-    displayPerPack.value = money(dispPer);
-    setTip('tip_display_per_pack', `Amortized display per pack = ${money(disp.sum)} ÷ ${ppd} packs = ${money(dispPer)}`);
-    let ingCost = 0, totalMg = 0;
-    $$("#ingredients .grid-4").forEach(row=>{
-      const mg = valNum(row.querySelector(".ing_mg")), cpmg = valNum(row.querySelector(".ing_cpmg"));
-      ingCost += mg * nPills * cpmg; totalMg += mg * nPills;
+function initializeTooltipEvents() {
+    document.body.addEventListener('mouseover', (e) => {
+        if (e.target.closest('[data-tip], .q')) {
+            showTip(null, e);
+        }
     });
-    const totalCOGS = ingCost + pack.sum + dispPer;
-    kIngr.textContent = money(ingCost);
-    kTotal.textContent = money(totalCOGS);
+    document.body.addEventListener('mouseout', (e) => {
+        if (e.target.closest('[data-tip], .q')) {
+            hideTip();
+        }
+    });
+    document.body.addEventListener('focusin', (e) => {
+        if (e.target.closest('[data-tip], .q')) {
+            showTip(null, e);
+        }
+    });
+    document.body.addEventListener('focusout', (e) => {
+        if (e.target.closest('[data-tip], .q')) {
+            hideTip();
+        }
+    });
+}
 
-    // --- Overhead ---
-    const ohTotal = sumBreakdown(overheadWrap, '.overhead_name', '.overhead_cost').sum;
-    const vol = Math.max(1, Math.floor(valNum(mv)));
-    const ohPerPack = ohTotal/vol;
-    kOHPerPack.textContent = money(ohPerPack);
-    setTip('tip_oh_per_pack', `Overhead per pack = ${money(ohTotal)} ÷ ${vol} = ${money(ohPerPack)}`);
 
-    // --- Channel Financials ---
-    const rPrice = valNum(retailPrice);
-    const wlPrice = rPrice * (1 - (valNum(discWholesale)/100));
-    const dsPrice = rPrice * (1 - (valNum(discDistributor)/100));
-    priceWholesale.value = money(wlPrice); priceDistributor.value = money(dsPrice);
-    const prR = rPrice - totalCOGS, prW = wlPrice - totalCOGS, prD = dsPrice - totalCOGS;
-    profitRetail.value = money(prR); profitWholesale.value = money(prW); profitDistributor.value = money(prD);
-    gmRetail.value = pct2(rPrice > 0 ? (prR/rPrice*100) : 0); gmWholesale.value = pct2(wlPrice > 0 ? (prW/wlPrice*100) : 0); gmDistributor.value = pct2(dsPrice > 0 ? (prD/dsPrice*100) : 0);
-    partnerProfitWh.value = money(rPrice - wlPrice); partnerProfitDist.value = money(wlPrice - dsPrice);
-    const shipPerPack = includeShipping.checked ? (valNum(shipPerOrder) / Math.max(1, Math.floor(valNum(packsPerOrder)))) : 0;
-    const ohInc = { retail: ohR.checked ? ohPerPack : 0, wholesale: ohW.checked ? ohPerPack : 0, distributor: ohD.checked ? ohPerPack : 0 };
-    const opAdj = { retail: ohInc.retail + shipPerPack, wholesale: ohInc.wholesale, distributor: ohInc.distributor };
-    const opR = prR - opAdj.retail, opW = prW - opAdj.wholesale, opD = prD - opAdj.distributor;
-    operProfitRetail.value = money(opR); operProfitWholesale.value = money(opW); operProfitDistributor.value = money(opD);
-    operGmRetail.value = pct2(rPrice>0 ? (opR/rPrice*100) : 0); operGmWholesale.value = pct2(wlPrice>0 ? (opW/wlPrice*100) : 0); operGmDistributor.value = pct2(dsPrice>0 ? (opD/dsPrice*100) : 0);
+// ===== Dynamic rows builders =====
+function makeIngRow(name='', mg='', usdmg=''){
+  const d=document.createElement('div'); d.className='row';
+  d.innerHTML = '<input class="w-160 ingName" placeholder="Ingredient" value="'+name+'" data-tip="ingName_input"> <input class="w-120 ingMg" type="number" step="0.0001" placeholder="mg/pill" value="'+mg+'" data-tip="ingMg_input"> <input class="w-120 ingUsdMg" type="number" step="0.000001" placeholder="$ / mg" value="'+usdmg+'" data-tip="ingUsdMg_input"> <button class="btn small rm">Remove</button>';
+  d.querySelector('.rm').onclick = ()=>{ d.remove(); if($('#autoCalc').checked) render() };
+  return d;
+}
+function makePackRow(name='', cost=''){
+  const d=document.createElement('div'); d.className='row';
+  d.innerHTML = '<input class="w-160 packName" placeholder="Name" value="'+name+'" data-tip="packName_input"> <input class="w-120 packCost" type="number" step="0.01" placeholder="$/pack" value="'+cost+'" data-tip="packCost_input"> <button class="btn small rm">Remove</button>';
+  d.querySelector('.rm').onclick = ()=>{ d.remove(); if($('#autoCalc').checked) render() };
+  return d;
+}
+function makeDispRow(name='', cost=''){
+  const d=document.createElement('div'); d.className='row';
+  d.innerHTML = '<input class="w-160 dispName" placeholder="Name" value="'+name+'" data-tip="dispName_input"> <input class="w-120 dispCost" type="number" step="0.01" placeholder="$/display" value="'+cost+'" data-tip="dispCost_input"> <button class="btn small rm">Remove</button>';
+  d.querySelector('.rm').onclick = ()=>{ d.remove(); if($('#autoCalc').checked) render() };
+  return d;
+}
+function makeOhRow(name='', cost=''){
+  const d=document.createElement('div'); d.className='row';
+  d.innerHTML = '<input class="w-160 ohName" placeholder="Name" value="'+name+'" data-tip="ohName_input"> <input class="w-120 ohCost" type="number" step="0.01" placeholder="$/month" value="'+cost+'" data-tip="ohCost_input"> <button class="btn small rm">Remove</button>';
+  d.querySelector('.rm').onclick = ()=>{ d.remove(); if($('#autoCalc').checked) render() };
+  return d;
+}
+function makeSP(){
+  const c=document.createElement('div'); c.className='card';
+  c.innerHTML='\
+    <div class="row"><input type="text" class="w-160 spName" placeholder="Salesperson name" value="Lead Rep" data-tip="spName_input"> <button class="btn small spRm">Remove person</button></div>\
+    <div class="row"><label class="row"><input class="spR" type="checkbox" checked> Retail</label><label class="row"><input class="spW" type="checkbox" checked> Wholesale</label><label class="row"><input class="spD" type="checkbox" checked> Distributor</label></div>\
+    <div class="grid-2"><div><label>Commission type</label><select class="w-160 spType" data-tip="spType_input"><option value="pctGrossRev">% of Gross Revenue</option><option value="perPack">$ per Pack Sold</option></select></div><div><label>Commission value</label><input class="w-120 spVal" type="number" step="0.01" value="5" data-tip="spVal_input"></div></div>\
+    <div><label>Target bonuses</label>\
+      <div class="row spBonuses"></div>\
+      <button class="btn small addBonus">Add bonus</button>\
+    </div>';
+  c.querySelector('.spRm').onclick=()=>{ c.remove(); if($('#autoCalc').checked) render() };
+  c.querySelector('.addBonus').onclick=()=>{
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML='<select class="w-160 bMetric" data-tip="bMetric_input"><option value="units">Units Sold</option><option value="grossRev">Gross Revenue</option><option value="grossProfit">Gross Profit</option></select> <input class="w-120 bThresh" type="number" step="0.01" placeholder="Threshold" data-tip="bThresh_input"> <input class="w-120 bAmt" type="number" step="0.01" placeholder="Bonus (USD)" data-tip="bAmt_input"> <button class="btn small bRm">Remove</button>';
+    r.querySelector('.bRm').onclick=()=>{ r.remove(); if($('#autoCalc').checked) render() };
+    c.querySelector('.spBonuses').appendChild(r);
+  };
+  return c;
+}
 
-    // --- Blended KPIs ---
-    const chans = [
-      {use:useRetail.checked, mix:valNum(mixRetail)/100, price:rPrice, gross:prR, oper:opR},
-      {use:useWholesale.checked, mix:valNum(mixWholesale)/100, price:wlPrice, gross:prW, oper:opW},
-      {use:useDistributor.checked, mix:valNum(mixDistributor)/100, price:dsPrice, gross:prD, oper:opD},
-    ].map(c => (c.use ? c : {...c, mix:0}));
-    let blendedRev=0, blendedGross=0, blendedOper=0;
-    chans.forEach(c=>{ blendedRev+=c.price*c.mix; blendedGross+=c.gross*c.mix; blendedOper+=c.oper*c.mix; });
-    kBlendRev.textContent = money(blendedRev); kBlendProfit.textContent = money(blendedGross); kBlendGM.textContent = pct2(blendedRev>0 ? (blendedGross/blendedRev*100) : 0);
-    kBlendOper.textContent = money(blendedOper); kBlendOPM.textContent = pct2(blendedRev>0 ? (blendedOper/blendedRev*100) : 0);
+// ===== Seed defaults so outputs are non-zero on first load =====
+$('#ingredients').appendChild(makeIngRow('Metocin (4‑HO‑MET)', 2, 0.002));
+$('#pack_rows').appendChild(makePackRow('Box / Outer', 0.50));
+$('#disp_rows').appendChild(makeDispRow('Counter Display', 0));
+$('#oh_rows').appendChild(makeOhRow('Salaries', 5000));
+$('#salespersons').appendChild(makeSP());
 
-    // --- Commission Calculations ---
-    const period = projectionPeriod.value;
-    const scale = { daily: 1/30.44, weekly: 1/4.345, monthly: 1, yearly: 12 }[period] || 1;
-    const periodVolume = vol * scale;
+// ===== Wire add buttons =====
+$('#add_ing').onclick = ()=>{ $('#ingredients').appendChild(makeIngRow()); if($('#autoCalc').checked) render() };
+$('#add_pack').onclick = ()=>{ $('#pack_rows').appendChild(makePackRow()); if($('#autoCalc').checked) render() };
+$('#add_disp').onclick = ()=>{ $('#disp_rows').appendChild(makeDispRow()); if($('#autoCalc').checked) render() };
+$('#add_oh').onclick   = ()=>{ $('#oh_rows').appendChild(makeOhRow()); if($('#autoCalc').checked) render() };
+$('#add_sp').onclick   = ()=>{ $('#salespersons').appendChild(makeSP()); if($('#autoCalc').checked) render() };
+
+// ===== State + math =====
+function getState(){
+  const S={};
+  S.pills = num($('#pills').value);
+  S.retailPrice = num($('#retailPrice').value);
+  S.packsPerDisplay = Math.max(1, num($('#packsPerDisplay').value));
+  S.includeShip = $('#includeShip')? $('#includeShip').checked : true;
+  S.shipCost = num($('#shipCost')?.value || 0);
+  S.packsPerOrder = Math.max(1, num($('#packsPerOrder')?.value || 1));
+  S.wDisc = num($('#wDisc').value);
+  S.dDisc = num($('#dDisc').value);
+  S.mixR = $('#includeR').checked ? num($('#mixR').value) : 0;
+  S.mixW = $('#includeW').checked ? num($('#mixW').value) : 0;
+  S.mixD = $('#includeD').checked ? num($('#mixD').value) : 0;
+  S.ohR = $('#ohR').checked; S.ohW = $('#ohW').checked; S.ohD = $('#ohD').checked;
+  S.monthlyVolume = Math.max(1, num($('#monthlyVolume').value));
+  S.ing = $$('#ingredients .row').map(r=>({ mg:num(r.querySelector('.ingMg').value), usdmg:num(r.querySelector('.ingUsdMg').value) }));
+  S.pack = $$('#pack_rows .row').map(r=> num(r.querySelector('.packCost').value));
+  S.disp = $$('#disp_rows .row').map(r=> num(r.querySelector('.dispCost').value));
+  S.oh   = $$('#oh_rows .row').map(r=> num(r.querySelector('.ohCost').value));
+  S.reps = Array.from($('#salespersons').children).map(card=>({
+    name: card.querySelector('.spName').value.trim()||'—',
+    chR: card.querySelector('.spR').checked,
+    chW: card.querySelector('.spW').checked,
+    chD: card.querySelector('.spD').checked,
+    type: card.querySelector('.spType').value,
+    val: num(card.querySelector('.spVal').value),
+    bonuses: Array.from(card.querySelectorAll('.spBonuses .row')).map(r=>({ metric:r.querySelector('.bMetric').value, thresh:num(r.querySelector('.bThresh').value), amt:num(r.querySelector('.bAmt').value) }))
+  }));
+  return S;
+}
+
+function calc(){
+  const S=getState();
+  const ingPerPack = S.ing.reduce((a,x)=> a + (x.mg*S.pills*x.usdmg), 0);
+  const packPerPack = S.pack.reduce((a,x)=> a + x, 0);
+  const dispPerPack = (S.disp.reduce((a,x)=> a + x, 0)) / S.packsPerDisplay;
+  const cogs = ingPerPack + packPerPack + dispPerPack;
+
+  const priceR=S.retailPrice;
+  const priceW=S.retailPrice*(1 - S.wDisc/100);
+  const priceD=S.retailPrice*(1 - S.dDisc/100);
+
+  const gpR=priceR-cogs, gpW=priceW-cogs, gpD=priceD-cogs;
+  const gmR=priceR>0? gpR/priceR:0, gmW=priceW>0? gpW/priceW:0, gmD=priceD>0? gpD/priceD:0;
+
+  const ohTotal=S.oh.reduce((a,x)=> a+x, 0);
+  const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0;
+  const shipPerPack = S.includeShip? (S.shipCost/Math.max(1,S.packsPerOrder)) : 0;
+
+  const opR=gpR - (S.ohR?ohPerPack:0) - shipPerPack;
+  const opW=gpW - (S.ohW?ohPerPack:0);
+  const opD=gpD - (S.ohD?ohPerPack:0);
+  const omR=priceR>0? opR/priceR:0, omW=priceW>0? opW/priceW:0, omD=priceD>0? opD/priceD:0;
+
+  const mR=S.mixR/100, mW=S.mixW/100, mD=S.mixD/100;
+  const brev = priceR*mR + priceW*mW + priceD*mD;
+  const bgpp = gpR*mR + gpW*mW + gpD*mD;
+  const bopp = opR*mR + opW*mW + opD*mD;
+  const bgmp = brev>0? bgpp/brev:0; const bomp = brev>0? bopp/brev:0;
+  
+  const retailerProfit = priceR - priceW;
+  const distProfit = priceR - priceD;
+  
+  const totalMgPerPack = S.ing.reduce((a,x)=> a + x.mg*S.pills, 0);
+  const costPerMg = totalMgPerPack > 0 ? cogs / totalMgPerPack : 0;
+  const costPerGram = costPerMg * 1000;
+
+
+  // commissions (projection period)
+  if(!$('#projPeriod')){ /* build once */
+    $('#projTable').innerHTML = '\
+      <div class="row"><label>Projection period</label>\
+        <select id="projPeriod" class="w-160"><option>Daily</option><option>Weekly</option><option selected>Monthly</option><option>Yearly</option></select>\
+        <span class="muted">(uses Monthly pack volume × period)</span></div>\
+      <div class="scroller" style="max-height:260px"><table>\
+        <thead><tr><th>Salesperson</th><th>Base commission</th><th>Bonuses earned</th><th>Total pay</th></tr></thead>\
+        <tbody id="proj_body"></tbody>\
+        <tfoot><tr><td style="text-align:left"><strong>Total</strong></td><td></td><td></td><td style="text-align:right" id="proj_totals">$0</td></tr></tfoot>\
+      </table></div>';
+    $('#projPeriod').onchange = ()=> $('#autoCalc').checked? render():0;
+  }
+  const periodSel = $('#projPeriod').value;
+  const mult = periodSel==='Daily'? 1/30 : periodSel==='Weekly'? 1/4 : periodSel==='Yearly'? 12 : 1;
+  const vol = S.monthlyVolume * mult;
+  const vR = vol*mR, vW=vol*mW, vD=vol*mD;
+
+  let totalBase=0, totalBonus=0; const perRep=[];
+  S.reps.forEach(rep=>{
+    const ch = [];
+    if(rep.chR) ch.push({vol:vR, price:priceR, gp:gpR});
+    if(rep.chW) ch.push({vol:vW, price:priceW, gp:gpW});
+    if(rep.chD) ch.push({vol:vD, price:priceD, gp:gpD});
+    let base=0, units=0, grossRev=0, grossProfit=0;
+    ch.forEach(c=>{ units+=c.vol; grossRev+=c.vol*c.price; grossProfit+=c.vol*c.gp; });
+    if(rep.type==='pctGrossRev') base = grossRev*(rep.val/100);
+    else if(rep.type==='perPack') base = units*rep.val;
+    let bonus=0; rep.bonuses.forEach(b=>{ const met = b.metric==='units'? units : b.metric==='grossRev'? grossRev : grossProfit; if(met>=b.thresh) bonus += b.amt; });
+    totalBase+=base; totalBonus+=bonus; perRep.push({name:rep.name, base, bonus, total:base+bonus});
+  });
+  const totalComm = totalBase+totalBonus;
+  const totalRevenue = brev * vol;
+  const totalOpProfit = bopp * vol;
+  const commPctGross = totalRevenue > 0 ? totalComm / totalRevenue : 0;
+  const commPctOp = totalOpProfit > 0 ? totalComm / totalOpProfit : 0;
+  const blendedOpPlusComm = totalRevenue > 0 ? (totalOpProfit - totalComm) / totalRevenue : 0;
+
+
+  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, vol, vR, vW, vD, perRep, totalBase, totalBonus, totalComm, commPctGross, commPctOp, totalRevenue, totalOpProfit, blendedOpPlusComm, costPerMg, costPerGram };
+}
+
+function render(){
+  const C = calc();
+  const {S}=C;
+  // outputs
+  $('#packCostPerPack').value = money3(C.packPerPack);
+  $('#dispCostPerPack').value = money3(C.dispPerPack);
+  $('#kpi_ing').textContent = money3(C.ingPerPack);
+  $('#kpi_cogs').textContent = money3(C.cogs);
+  $('#kpi_costmg').textContent = C.costPerMg > 0 ? money3(C.costPerMg) : '$0';
+  $('#kpi_costg').textContent = C.costPerGram > 0 ? money(C.costPerGram) : '$0';
+
+  $('#wPrice').value = money3(C.priceW);
+  $('#dPrice').value = money3(C.priceD);
+  $('#revR').value = money3(C.priceR);
+  $('#gpR').value = money3(C.gpR); $('#gmR').value = pct(C.gmR);
+  $('#gpW').value = money3(C.gpW); $('#gmW').value = pct(C.gmW);
+  $('#gpD').value = money3(C.gpD); $('#gmD').value = pct(C.gmD);
+  $('#opR').value = money3(C.opR); $('#omR').value = pct(C.omR);
+  $('#opW').value = money3(C.opW); $('#omW').value = pct(C.omW);
+  $('#opD').value = money3(C.opD); $('#omD').value = pct(C.omD);
+  $('#retailerProfit').value = money3(C.retailerProfit);
+  $('#distProfit').value = money3(C.distProfit);
+
+  $('#kpi_brev').textContent = money3(C.brev);
+  $('#kpi_bgpp').textContent = money3(C.bgpp);
+  $('#kpi_bgmp').textContent = pct(C.bgmp);
+  $('#kpi_ohpp').textContent = money3(C.ohPerPack);
+  $('#kpi_bopp').textContent = money3(C.bopp);
+  $('#kpi_bomp').textContent = pct(C.bomp);
+
+  // commissions table
+  const tbody = $('#proj_body'); tbody.innerHTML='';
+  C.perRep.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML = '<td>'+r.name+'</td><td style="text-align:right">'+money3(r.base)+'</td><td style="text-align:right">'+money3(r.bonus)+'</td><td style="text-align:right">'+money3(r.total)+'</td>'; tbody.appendChild(tr) });
+  $('#proj_totals').textContent = money3(C.totalComm);
+  
+  // commission projections
+  $('#comm_proj_table').innerHTML = `
+    <table>
+      <thead><tr><th>Total Comm.</th><th>Blended OP %</th><th>Blended OP-Comm %</th></tr></thead>
+      <tbody><tr>
+        <td>${money(C.totalComm)}</td>
+        <td>${pct(C.bomp)}</td>
+        <td>${pct(C.blendedOpPlusComm)}</td>
+      </tr></tbody>
+    </table>`;
+
+
+  // tooltips
+  wireTips(C);
+
+  // scenarios UI
+  drawScenarioTableHeaders();
+  drawScenarioRows();
+
+  $('#status').textContent = 'Calculated ' + new Date().toLocaleString();
+}
+
+function wireTips(C){
+  const S=C.S; const ship = S.includeShip? money3(C.shipPerPack)+' per pack' : '$0 not included';
+  const tips = {
+    prod:{title:'Product specs', body:()=> 'Inputs feed every calculation.'},
+    pills:{title:'Pills per pack', body:()=> S.pills+' pills/pack'},
+    price:{title:'Retail price', body:()=> '= <b>'+money3(S.retailPrice)+'</b>'},
+    packsDisp:{title:'Packs per display', body:()=> 'Σ(display)/'+S.packsPerDisplay+' = <b>'+money3(C.dispPerPack)+'</b>'},
+    packCost:{title:'Packaging / pack', body:()=> 'Σ(pack rows) = <b>'+money3(C.packPerPack)+'</b>'},
+    dispCost:{title:'Display / pack', body:()=> 'Σ(display rows)/'+S.packsPerDisplay+' = <b>'+money3(C.dispPerPack)+'</b>'},
+    ingredients:{title:'Ingredients', body:()=> 'Σ(mg/pill × pills × $/mg)'},
+    k_ing:{title:'Ingredient cost / pack', body:()=> '= <b>'+money3(C.ingPerPack)+'</b>'},
+    k_cogs:{title:'COGS / pack', body:()=> money3(C.ingPerPack)+' + '+money3(C.packPerPack)+' + '+money3(C.dispPerPack)+' = <b>'+money3(C.cogs)+'</b>'},
+    k_mg:{title:'Fully loaded $/mg', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.cogs)+' / '+mg.toFixed(0)+' mg = <b>'+money3(C.costPerMg)+'</b>':'—' }},
+    k_g:{title:'Fully loaded $/gram', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.costPerMg)+' × 1000 = <b>'+money(C.costPerGram)+'</b>':'—' }},
+    channels:{title:'Channels', body:()=> 'Wholesale/Distributor apply discounts to Retail price.'},
+    mix:{title:'Mix %', body:()=> 'Auto‑redistribute keeps R/W/D totaling 100%'},
+    priceW:{title:'Wholesale price', body:()=> money3(S.retailPrice)+' × (1 − '+S.wDisc.toFixed(2)+'%) = <b>'+money3(C.priceW)+'</b>'},
+    priceD:{title:'Distributor price', body:()=> money3(S.retailPrice)+' × (1 − '+S.dDisc.toFixed(2)+'%) = <b>'+money3(C.priceD)+'</b>'},
+    gpR:{title:'Retail GP/pack', body:()=> money3(S.retailPrice)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpR)+'</b>'},
+    gpW:{title:'Wholesale GP/pack', body:()=> money3(C.priceW)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpW)+'</b>'},
+    gpD:{title:'Distributor GP/pack', body:()=> money3(C.priceD)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpD)+'</b>'},
+    gmR:{title:'Retail GM%', body:()=> money3(C.gpR)+' / '+money3(C.priceR)+' = <b>'+pct(C.gmR)+'</b>'},
+    gmW:{title:'Wholesale GM%', body:()=> money3(C.gpW)+' / '+money3(C.priceW)+' = <b>'+pct(C.gmW)+'</b>'},
+    gmD:{title:'Distributor GM%', body:()=> money3(C.gpD)+' / '+money3(C.priceD)+' = <b>'+pct(C.gmD)+'</b>'},
+    opR:{title:'Retail OP/pack', body:()=> money3(C.gpR)+' − '+(S.ohR?money3(C.ohPerPack):'$0')+' − '+ship+' = <b>'+money3(C.opR)+'</b>'},
+    opW:{title:'Wholesale OP/pack', body:()=> money3(C.gpW)+' − '+(S.ohW?money3(C.ohPerPack):'$0')+' = <b>'+money3(C.opW)+'</b>'},
+    opD:{title:'Distributor OP/pack', body:()=> money3(C.gpD)+' − '+(S.ohD?money3(C.ohPerPack):'$0')+' = <b>'+money3(C.opD)+'</b>'},
+    omR:{title:'Retail OM%', body:()=> money3(C.opR)+' / '+money3(C.priceR)+' = <b>'+pct(C.omR)+'</b>'},
+    omW:{title:'Wholesale OM%', body:()=> money3(C.opW)+' / '+money3(C.priceW)+' = <b>'+pct(C.omW)+'</b>'},
+    omD:{title:'Distributor OM%', body:()=> money3(C.opD)+' / '+money3(C.priceD)+' = <b>'+pct(C.omD)+'</b>'},
+    brev:{title:'Blended revenue/pack', body:()=> money3(C.priceR)+'×'+S.mixR+'% + '+money3(C.priceW)+'×'+S.mixW+'% + '+money3(C.priceD)+'×'+S.mixD+'% = <b>'+money3(C.brev)+'</b>'},
+    bgpp:{title:'Blended GP/pack', body:()=> money3(C.gpR)+'×'+S.mixR+'% + '+money3(C.gpW)+'×'+S.mixW+'% + '+money3(C.gpD)+'×'+S.mixD+'% = <b>'+money3(C.bgpp)+'</b>'},
+    bgmp:{title:'Blended GM%', body:()=> money3(C.bgpp)+' / '+money3(C.brev)+' = <b>'+pct(C.bgmp)+'</b>'},
+    ohpp:{title:'Overhead / pack', body:()=> 'Σ(overhead)/'+S.monthlyVolume+' = <b>'+money3(C.ohPerPack)+'</b>'},
+    bopp:{title:'Blended OP/pack', body:()=> money3(C.opR)+'×'+S.mixR+'% + '+money3(C.opW)+'×'+S.mixW+'% + '+money3(C.opD)+'×'+S.mixD+'% = <b>'+money3(C.bopp)+'</b>'},
+    bomp:{title:'Blended OM%', body:()=> money3(C.bopp)+' / '+money3(C.brev)+' = <b>'+pct(C.bomp)+'</b>'},
+    scenarios:{title:'Scenarios', body:()=> 'v6 storage with timestamps. Use Choose columns to define capture.'},
+    comm:{title:'Sales commissions', body:()=> 'Per salesperson: select channels, choose commission type, add optional bonuses. Calculated for selected period.'},
+    revR: {title:'Retail Revenue/pack', body:()=> 'This is the retail price per pack. = <b>'+money3(C.priceR)+'</b>'},
+    retailerProfit: {title: 'Retailer Profit/pack', body:()=> 'The profit the retailer makes on a wholesale transaction.<br>'+money3(C.priceR)+' (Retail) - '+money3(C.priceW)+' (Wholesale Price) = <b>'+money3(C.retailerProfit)+'</b>'},
+    distProfit: {title: 'Distributor Profit/pack', body:()=> 'The profit the distributor makes.<br>'+money3(C.priceR)+' (Retail) - '+money3(C.priceD)+' (Distributor Price) = <b>'+money3(C.distProfit)+'</b>'},
+    shipCost: {title: 'Shipping Cost', body:()=> 'Cost to ship a single retail order.'},
+    packRows: {title: 'Packaging Items', body:()=> 'List all individual packaging costs per pack.'},
+    dispRows: {title: 'Display Items', body:()=> 'List all individual costs for one display unit.'},
+    overhead: {title: 'Monthly Overhead', body:()=> 'Fixed monthly business costs (salaries, rent, etc.).'},
     
-    let totalCommissions = 0;
-    commissionResults = []; // Clear and recalculate
-    const salespersonCards = $$('.salesperson-card');
+    pills_input: {title: 'Input: Pills per pack', body:()=> 'Enter the number of pills in each retail pack.'},
+    price_input: {title: 'Input: Retail price', body:()=> 'Enter the final consumer price for one pack.'},
+    packsDisp_input: {title: 'Input: Packs per display', body:()=> 'How many packs fit into one shipping/store display?'},
+    mix_input: {title: 'Input: Mix %', body:()=> 'What percentage of sales comes from this channel?'},
+    wDisc_input: {title: 'Input: Wholesale Discount %', body:()=> 'Discount off retail price for wholesale customers.'},
+    dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off retail price for distributors.'},
+    shipCost_input: {title: 'Input: Shipping Cost', body:()=> 'Enter the cost to ship a single retail order.'},
+    packsPerOrder_input: {title: 'Input: Packs per order', body:()=> 'Average number of packs in a single retail order.'},
+    monthlyVolume_input: {title: 'Input: Monthly Volume', body:()=> 'Total number of packs sold across all channels in a month.'},
+    ingName_input: {title: 'Input: Ingredient Name', body:()=> 'Name of the ingredient.'},
+    ingMg_input: {title: 'Input: Milligrams per Pill', body:()=> 'How many milligrams of this ingredient are in one pill.'},
+    ingUsdMg_input: {title: 'Input: Cost per Milligram', body:()=> 'The cost for one milligram of this ingredient.'},
+    packName_input: {title: 'Input: Packaging Item Name', body:()=> 'Name of the packaging component (e.g., box, bottle).'},
+    packCost_input: {title: 'Input: Cost per Pack', body:()=> 'Cost of this packaging component for one pack.'},
+    dispName_input: {title: 'Input: Display Item Name', body:()=> 'Name of the display component (e.g., cardboard stand).'},
+    dispCost_input: {title: 'Input: Cost per Display', body:()=> 'Cost of this component for one display unit.'},
+    ohName_input: {title: 'Input: Overhead Item Name', body:()=> 'Name of the monthly overhead cost (e.g., Salaries).'},
+    ohCost_input: {title: 'Input: Monthly Cost', body:()=> 'The total cost for this item per month.'},
+    spName_input: {title: 'Input: Salesperson Name', body:()=> 'Name of the sales representative.'},
+    spType_input: {title: 'Input: Commission Type', body:()=> 'How the commission is calculated.'},
+    spVal_input: {title: 'Input: Commission Value', body:()=> 'The percentage or dollar amount for the commission.'},
+    bMetric_input: {title: 'Input: Bonus Metric', body:()=> 'The metric for achieving a bonus.'},
+    bThresh_input: {title: 'Input: Bonus Threshold', body:()=> 'The target value to achieve for the bonus.'},
+    bAmt_input: {title: 'Input: Bonus Amount', body:()=> 'The bonus amount paid when the threshold is met.'},
+    
+    ch_retail: {title: 'Retail Channel', body:()=> 'Direct-to-consumer sales at full retail price.'},
+    ch_wholesale: {title: 'Wholesale Channel', body:()=> 'Sales to retailers at a discounted price.'},
+    ch_distributor: {title: 'Distributor Channel', body:()=> 'Sales to distributors at a larger discount.'},
+  };
 
-    salespersonCards.forEach(card => {
-        const name = card.querySelector('.salesperson_name').value || 'Unnamed';
-        const channels = {
-            retail: card.querySelector('.sp_chan_retail').checked,
-            wholesale: card.querySelector('.sp_chan_wholesale').checked,
-            distributor: card.querySelector('.sp_chan_distributor').checked,
-        };
-        const commissionType = card.querySelector('.commission_type').value;
-        const commissionValue = valNum(card.querySelector('.commission_value'));
+  ALL_COLUMNS.forEach(col => {
+    tips[`col_tip_${col.key}`] = { title: col.label, body: () => col.tooltip };
+  });
 
-        let personVolume = 0, personGrossRev = 0, personGrossProfit = 0;
-        if (channels.retail && useRetail.checked) {
-            const channelVol = periodVolume * (valNum(mixRetail)/100);
-            personVolume += channelVol;
-            personGrossRev += channelVol * rPrice;
-            personGrossProfit += channelVol * prR;
-        }
-        if (channels.wholesale && useWholesale.checked) {
-            const channelVol = periodVolume * (valNum(mixWholesale)/100);
-            personVolume += channelVol;
-            personGrossRev += channelVol * wlPrice;
-            personGrossProfit += channelVol * prW;
-        }
-        if (channels.distributor && useDistributor.checked) {
-            const channelVol = periodVolume * (valNum(mixDistributor)/100);
-            personVolume += channelVol;
-            personGrossRev += channelVol * dsPrice;
-            personGrossProfit += channelVol * prD;
-        }
+  Object.assign(T, tips);
+}
 
-        let baseCommission = 0;
-        if (commissionType === 'pct_gross') {
-            baseCommission = personGrossRev * (commissionValue / 100);
-        } else { // usd_pack
-            baseCommission = personVolume * commissionValue;
-        }
+function updateChannelStates() {
+    const channels = [
+        { id: 'R', card: $('#mixR').closest('.card'), checkbox: $('#includeR'), mixInput: $('#mixR') },
+        { id: 'W', card: $('#mixW').closest('.card'), checkbox: $('#includeW'), mixInput: $('#mixW') },
+        { id: 'D', card: $('#mixD').closest('.card'), checkbox: $('#includeD'), mixInput: $('#mixD') }
+    ];
 
-        let bonusesEarned = 0;
-        card.querySelectorAll('.bonus-row').forEach(bonusRow => {
-            const type = bonusRow.querySelector('.bonus_type').value;
-            const target = valNum(bonusRow.querySelector('.bonus_target'));
-            const amount = valNum(bonusRow.querySelector('.bonus_amount'));
-            
-            let metric;
-            if (type === 'units') metric = personVolume;
-            else if (type === 'gross_rev') metric = personGrossRev;
-            else metric = personGrossProfit;
-
-            if (metric >= target) {
-                bonusesEarned += amount;
+    channels.forEach(ch => {
+        const isEnabled = ch.checkbox.checked;
+        ch.card.style.opacity = isEnabled ? '1' : '0.6';
+        ch.card.querySelectorAll('input, select').forEach(input => {
+            if (input.type !== 'checkbox') {
+                 input.disabled = !isEnabled;
             }
         });
-
-        const totalPay = baseCommission + bonusesEarned;
-        totalCommissions += totalPay;
-        commissionResults.push({ name, baseCommission, bonusesEarned, totalPay });
+        if (!isEnabled) {
+            ch.mixInput.value = 0;
+        }
     });
-
-    // --- Render Commission Results ---
-    commissionsTblBody.innerHTML = '';
-    commissionResults.forEach(res => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${res.name}</td><td>${money(res.baseCommission)}</td><td>${money(res.bonusesEarned)}</td><td>${money(res.totalPay)}</td>`;
-        commissionsTblBody.appendChild(row);
-    });
-
-    const totalPeriodGross = periodVolume * blendedRev;
-    const totalPeriodOper = periodVolume * blendedOper;
-    kTotalComm.textContent = money(totalCommissions);
-    kCommPctGross.textContent = pct2(totalPeriodGross > 0 ? (totalCommissions / totalPeriodGross * 100) : 0);
-    kCommPctOper.textContent = pct2(totalPeriodOper > 0 ? (totalCommissions / totalPeriodOper * 100) : 0);
-    
-    setTip('tip_total_comm', `Total commissions and bonuses paid for the selected ${period} period.`);
-    setTip('tip_comm_pct_gross', `Total Commissions ${money(totalCommissions)} ÷ Total Gross Revenue ${money(totalPeriodGross)}`);
-    setTip('tip_comm_pct_oper', `Total Commissions ${money(totalCommissions)} ÷ Total Operating Profit ${money(totalPeriodOper)}`);
+}
 
 
-    // --- Final UI Updates ---
-    normalizeMix();
-    toggleChannelCards();
-    $('#rev_retail').value = money(rPrice);
-  }
+function enforceMix(changedId) {
+    if (!$('#autoMix').checked) return;
 
-  // --- Events ---
-  const allInputs = [pills, retailPrice, packsPerDisplay, discWholesale, discDistributor, mixRetail, mixWholesale, mixDistributor, mv, shipPerOrder, packsPerOrder, projectionPeriod];
-  allInputs.forEach(el=> el.addEventListener("input", onMaybeCalc));
-  const allToggles = [useRetail, useWholesale, useDistributor, chkAutoMix, ohR, ohW, ohD, includeShipping, $('#auto_calc')];
-  allToggles.forEach(el=> el.addEventListener("change", ()=>{ normalizeMix(); onMaybeCalc(); }));
-  btnCalc.addEventListener('click', ()=> computeAll());
+    const channels = [
+        { id: 'R', checkbox: $('#includeR'), mixInput: $('#mixR') },
+        { id: 'W', checkbox: $('#includeW'), mixInput: $('#mixW') },
+        { id: 'D', checkbox: $('#includeD'), mixInput: $('#mixD') }
+    ];
 
-  // --- Scenarios ---
-  let scenarios = [];
-  function snapshot(){
-    const salespersonRows = $$('.salesperson-card').map(card => {
-        const bonuses = [...card.querySelectorAll('.bonus-row')].map(bRow => ({
-            type: bRow.querySelector('.bonus_type').value,
-            target: valNum(bRow.querySelector('.bonus_target')),
-            amount: valNum(bRow.querySelector('.bonus_amount')),
-        }));
-        return {
-            name: card.querySelector('.salesperson_name').value,
-            channels: {
-                retail: card.querySelector('.sp_chan_retail').checked,
-                wholesale: card.querySelector('.sp_chan_wholesale').checked,
-                distributor: card.querySelector('.sp_chan_distributor').checked,
-            },
-            commissionType: card.querySelector('.commission_type').value,
-            commissionValue: valNum(card.querySelector('.commission_value')),
-            bonuses
-        };
-    });
-    
-    const totalBonuses = commissionResults.reduce((sum, res) => sum + res.bonusesEarned, 0);
+    const activeChannels = channels.filter(ch => ch.checkbox.checked);
+    if (activeChannels.length === 0) {
+        channels.forEach(ch => ch.mixInput.value = 0);
+        if ($('#autoCalc').checked) render();
+        return;
+    }
 
-    return {
-      ts:new Date().toISOString(), label:($('#scenario_label').value||""),
-      pills:valNum(pills), retailPrice:valNum(retailPrice), packsPerDisplay:valNum(packsPerDisplay),
-      totalCost: parseFloat($('#kpi_total_cost').textContent.replace(/[^0-9.]/g,""))||0,
-      wlDisc: valNum(discWholesale), dsDisc: valNum(discDistributor),
-      useR: useRetail.checked, useW: useWholesale.checked, useD: useDistributor.checked,
-      mixR: valNum(mixRetail), mixW: valNum(mixWholesale), mixD: valNum(mixDistributor),
-      blendedGM: parseFloat(kBlendGM.textContent)||0,
-      blendedOPM: parseFloat(kBlendOPM.textContent)||0,
-      ohIncR: ohR.checked, ohIncW: ohW.checked, ohIncD: ohD.checked,
-      monthlyVolume: valNum(mv),
-      shipPerOrder: valNum(shipPerOrder), packsPerOrder: valNum(packsPerOrder), includeShipping: includeShipping.checked,
-      projectionPeriod: projectionPeriod.value,
-      totalCommissions: parseFloat(kTotalComm.textContent.replace(/[^0-9.]/g,""))||0,
-      totalBonuses: totalBonuses,
-      commPctGross: parseFloat(kCommPctGross.textContent) || 0,
-      commPctOper: parseFloat(kCommPctOper.textContent) || 0,
-      salespersonRows,
-      ingRows: [...ingWrap.children].map(r=>({name: r.querySelector('.ing_name').value||'', mg: valNum(r.querySelector('.ing_mg')), cpmg: valNum(r.querySelector('.ing_cpmg'))})),
-      packRows: [...packWrap.children].map(r=>({name: r.querySelector('.pack_name').value||'', cost: valNum(r.querySelector('.pack_cost'))})),
-      dispRows: [...dispWrap.children].map(r=>({name: r.querySelector('.disp_name').value||'', cost: valNum(r.querySelector('.disp_cost'))})),
-      overheadRows: [...overheadWrap.children].map(r=>({name: r.querySelector('.overhead_name').value||'', cost: valNum(r.querySelector('.overhead_cost'))}))
-    };
-  }
+    const changedChannel = activeChannels.find(ch => ch.mixInput.id === changedId);
 
-  function renderScenarios(){
-    tblBody.innerHTML = "";
-    scenarios.forEach((s,i)=>{
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${new Date(s.ts).toLocaleString()}</td>
-        <td>${s.label||""}</td>
-        <td>${money(s.retailPrice)}</td>
-        <td>${money(s.totalCost)}</td>
-        <td>${pct2(s.blendedGM)}</td>
-        <td>${pct2(s.blendedOPM)}</td>
-        <td>${money(s.totalCommissions)}</td>
-        <td>${money(s.totalBonuses)}</td>
-        <td>${pct2(s.commPctGross)}</td>
-        <td>${pct2(s.commPctOper)}</td>
-        <td>${(s.salespersonRows || []).length}</td>
-        <td><button class="btn small" data-idx="${i}" data-act="load">Load</button></td>
-      `;
-      tblBody.appendChild(tr);
-    });
-    $$('#scenarios_tbl [data-act="load"]').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        const s = scenarios[parseInt(e.currentTarget.dataset.idx)]; if(!s) return;
-        pills.value = s.pills; retailPrice.value = s.retailPrice; packsPerDisplay.value = s.packsPerDisplay;
-        ingWrap.innerHTML=''; (s.ingRows||[]).forEach(p=> addIngredientRow(p));
-        packWrap.innerHTML=''; (s.packRows||[]).forEach(p=> addPackRow(p));
-        dispWrap.innerHTML=''; (s.dispRows||[]).forEach(p=> addDispRow(p));
-        overheadWrap.innerHTML=''; (s.overheadRows||[]).forEach(p=> addOverheadRow(p));
-        salespersonsWrap.innerHTML = ''; (s.salespersonRows || []).forEach(p => addSalespersonRow(p));
-        useRetail.checked = s.useR; useWholesale.checked = s.useW; useDistributor.checked = s.useD;
-        mixRetail.value = s.mixR; mixWholesale.value = s.mixW; mixDistributor.value = s.mixD;
-        discWholesale.value = s.wlDisc; discDistributor.value = s.dsDisc;
-        mv.value = s.monthlyVolume;
-        ohR.checked = !!s.ohIncR; ohW.checked = !!s.ohIncW; ohD.checked = !!s.ohIncD;
-        shipPerOrder.value = s.shipPerOrder; packsPerOrder.value = s.packsPerOrder; includeShipping.checked = !!s.includeShipping;
-        projectionPeriod.value = s.projectionPeriod || 'monthly';
-        computeAll();
-      });
-    });
-  }
-  
-  function saveScenariosToStorage() { localStorage.setItem(SCENARIO_KEY, JSON.stringify(scenarios)); }
+    if (changedChannel) {
+        let val = Math.max(0, Math.min(100, num(changedChannel.mixInput.value)));
+        changedChannel.mixInput.value = val;
 
-  btnSave.addEventListener("click",()=>{computeAll(); scenarios.unshift(snapshot()); renderScenarios(); saveScenariosToStorage(); $('#scenario_label').value="";});
-  
-  btnDownload.addEventListener("click",()=>{
-    if(scenarios.length===0){ return; }
-    const cols = Object.keys(scenarios[0]).filter(k => typeof scenarios[0][k] !== 'object');
-    const header = cols.join(",") + "\n";
-    const csv = header + scenarios.map(row => cols.map(col => `"${row[col]}"`).join(',')).join('\n');
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    link.download = `scenarios-${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-  });
-  
-  btnClear.addEventListener("click", () => {
-      if (confirm("Are you sure you want to delete all saved scenarios? This cannot be undone.")) {
-          scenarios = []; renderScenarios(); saveScenariosToStorage();
+        const otherActiveChannels = activeChannels.filter(ch => ch.mixInput.id !== changedId);
+        if (otherActiveChannels.length > 0) {
+            const rem = 100 - val;
+            const split = rem / otherActiveChannels.length;
+            otherActiveChannels.forEach(ch => ch.mixInput.value = split.toFixed(1));
+        } else {
+             changedChannel.mixInput.value = 100;
+        }
+    } else {
+        const split = 100 / activeChannels.length;
+        activeChannels.forEach(ch => ch.mixInput.value = split.toFixed(1));
+    }
+
+    const finalTotal = activeChannels.reduce((sum, ch) => sum + num(ch.mixInput.value), 0);
+    const diff = 100 - finalTotal;
+    if (diff.toFixed(1) != 0.0 && activeChannels.length > 0) {
+        activeChannels[0].mixInput.value = (num(activeChannels[0].mixInput.value) + diff).toFixed(1);
+    }
+    if ($('#autoCalc').checked) render();
+}
+
+// ===== Scenarios (v6) + captures + migration =====
+const LS_KEY='channel_calc_scenarios_v6';
+const OLD_KEYS=['channel_calc_scenarios_v3','channel_calc_scenarios_v5'];
+let CAPTURES={ '__full__': [] };
+
+const ALL_COLUMNS = [
+  {key:'savedAt', label:'Saved', tooltip: 'The date the scenario was saved.'}, 
+  {key:'label', label:'Label', tooltip: 'A custom name for the scenario.'}, 
+  {key:'lastCalculatedAt', label:'Last Calculated At', tooltip: 'The last time the calculations were run for this scenario.'},
+  {key:'pills', label:'Pills', tooltip: 'Number of pills per pack.'}, 
+  {key:'retailPrice', label:'Retail Price', tooltip: 'The selling price to the end customer.'}, 
+  {key:'packsPerDisplay', label:'Packs per Display', tooltip: 'Number of packs in a shipping display.'},
+  {key:'ingPerPack', label:'Ingredients / pack', tooltip: 'Total cost of ingredients for one pack.'}, 
+  {key:'packPerPack', label:'Packaging / pack', tooltip: 'Total cost of packaging for one pack.'}, 
+  {key:'dispPerPack', label:'Display / pack', tooltip: 'Amortized cost of the display per pack.'}, 
+  {key:'cogs', label:'Total COGS', tooltip: 'Total Cost of Goods Sold per pack.'}, 
+  {key:'ohPerPack', label:'Overhead / pack', tooltip: 'Amortized monthly overhead cost per pack.'}, 
+  {key:'shipPerPack', label:'Shipping / pack', tooltip: 'Amortized shipping cost per pack for retail orders.'},
+  {key:'wDisc', label:'Wholesale Discount %', tooltip: 'Discount percentage for wholesale channel.'}, 
+  {key:'dDisc', label:'Distributor Discount %', tooltip: 'Discount percentage for distributor channel.'}, 
+  {key:'mixR', label:'Mix Retail %', tooltip: 'Percentage of sales from the retail channel.'}, 
+  {key:'mixW', label:'Mix Wholesale %', tooltip: 'Percentage of sales from the wholesale channel.'}, 
+  {key:'mixD', label:'Mix Distributor %', tooltip: 'Percentage of sales from the distributor channel.'}, 
+  {key:'gmR', label:'Gross Margin % Retail', tooltip: 'Gross Margin percentage for the retail channel.'}, 
+  {key:'gmW', label:'Gross Margin % Wholesale', tooltip: 'Gross Margin percentage for the wholesale channel.'}, 
+  {key:'gmD', label:'Gross Margin % Distributor', tooltip: 'Gross Margin percentage for the distributor channel.'}, 
+  {key:'omR', label:'Operating Margin % Retail', tooltip: 'Operating Margin percentage for the retail channel.'}, 
+  {key:'omW', label:'Operating Margin % Wholesale', tooltip: 'Operating Margin percentage for the wholesale channel.'}, 
+  {key:'omD', label:'Operating Margin % Distributor', tooltip: 'Operating Margin percentage for the distributor channel.'},
+  {key:'brev', label:'Blended Revenue/Pack', tooltip: 'Blended revenue per pack across all active channels.'}, 
+  {key:'bgpp', label:'Blended Gross Profit/Pack', tooltip: 'Blended gross profit per pack across all active channels.'}, 
+  {key:'bgmp', label:'Blended Gross Margin %', tooltip: 'Blended gross margin percentage across all active channels.'}, 
+  {key:'bopp', label:'Blended Operating Profit/Pack', tooltip: 'Blended operating profit per pack across all active channels.'}, 
+  {key:'bomp', label:'Blended Operating Margin %', tooltip: 'Blended operating margin percentage across all active channels.'},
+  {key:'salespersonCount', label:'Salesperson Count', tooltip: 'Total number of salespersons.'}, 
+  {key:'totalComm', label:'Total Commissions', tooltip: 'Total commissions paid for the projection period.'}, 
+  {key:'totalBonus', label:'Total Bonuses', tooltip: 'Total bonuses paid for the projection period.'}, 
+  {key:'commPctGross', label:'Commission % of Revenue', tooltip: 'Total commissions as a percentage of total revenue.'}, 
+  {key:'commPctOp', label:'Commission % of Operating Profit', tooltip: 'Total commissions as a percentage of operating profit.'},
+  {key:'totalRevenue', label:'Total Revenue', tooltip: 'Total projected revenue for the period.'},
+  {key:'totalOpProfit', label:'Blended OP Profit', tooltip: 'Total projected operating profit for the period.'},
+  {key:'anonymous', label:'Anonymous', tooltip: 'Placeholder for user data.'}, 
+  {key:'if', label:'IF', tooltip: 'Placeholder for conditional logic.'}, 
+  {key:'load', label:'Load', tooltip: 'Load this scenario\'s inputs.'}
+];
+
+const SCENARIO_TABLE_KEYS = ['savedAt', 'label', 'retailPrice', 'cogs', 'brev', 'bopp', 'totalRevenue', 'commPctGross', 'totalOpProfit', 'anonymous', 'if', 'load'];
+
+function ensureFullCapture(){ CAPTURES['__full__'] = ALL_COLUMNS.map(c=>c.key) }
+function currentCaptureKeys(){ const sel=$('#capture_sel').value; return CAPTURES[sel]||ALL_COLUMNS.map(c=>c.key) }
+function drawScenarioTableHeaders(){ const head=$('#scenarios_head'); head.innerHTML=''; const tr=document.createElement('tr'); SCENARIO_TABLE_KEYS.forEach(key=>{ const colInfo = ALL_COLUMNS.find(c => c.key === key); const th=document.createElement('th'); th.textContent=colInfo.label; tr.appendChild(th) }); head.appendChild(tr) }
+function loadScenarios(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]') }catch(e){ return [] } }
+function saveScenarios(list){ localStorage.setItem(LS_KEY, JSON.stringify(list)) }
+function migrateOld(){ /* Migration logic can be re-added if needed */ }
+function scenarioFromCurrent(C){ 
+  const S=C.S; 
+  const row={}; 
+  row.savedAt = new Date().toLocaleDateString(); 
+  row.label = ($('#scenario_label').value||'').trim(); 
+  row.retailPrice=money(S.retailPrice); 
+  row.cogs=money(C.cogs); 
+  row.brev=money(C.brev); 
+  row.bopp=money(C.bopp); 
+  row.totalRevenue = money(C.totalRevenue);
+  row.commPctGross = pct(C.commPctGross);
+  row.totalOpProfit = money(C.totalOpProfit);
+  row.anonymous = 'Anonymous';
+  row.if = 'IF';
+  row.__inputs={ pills:S.pills, retailPrice:S.retailPrice, packsPerDisplay:S.packsPerDisplay, wDisc:S.wDisc, dDisc:S.dDisc, mixR:S.mixR, mixW:S.mixW, mixD:S.mixD, monthlyVolume:S.monthlyVolume, includeShip:S.includeShip, shipCost:S.shipCost, packsPerOrder:S.packsPerOrder, oh: S.oh, reps: S.reps }; 
+  return row 
+}
+function drawScenarioRows(){ 
+  const body=$('#scenarios_body'); 
+  body.innerHTML=''; 
+  const list=loadScenarios(); 
+  list.forEach((r)=>{ 
+    const tr=document.createElement('tr'); 
+    SCENARIO_TABLE_KEYS.forEach(key=>{ 
+      const td=document.createElement('td'); 
+      if (key === 'load') {
+        const btn=document.createElement('button'); 
+        btn.className='btn small'; 
+        btn.textContent='Load'; 
+        btn.onclick=()=> restoreScenario(r.__inputs||{}); 
+        td.appendChild(btn); 
+      } else {
+        td.textContent = r[key] ?? '—'; 
       }
-  });
+      tr.appendChild(td) 
+    }); 
+    body.appendChild(tr) 
+  }) 
+}
+function restoreScenario(inputs){ 
+  if(inputs.pills!=null) $('#pills').value=inputs.pills; 
+  if(inputs.retailPrice!=null) $('#retailPrice').value=inputs.retailPrice; 
+  if(inputs.packsPerDisplay!=null) $('#packsPerDisplay').value=inputs.packsPerDisplay; 
+  if(inputs.wDisc!=null) $('#wDisc').value=inputs.wDisc; 
+  if(inputs.dDisc!=null) $('#dDisc').value=inputs.dDisc; 
+  if(inputs.mixR!=null) $('#mixR').value=inputs.mixR; 
+  if(inputs.mixW!=null) $('#mixW').value=inputs.mixW; 
+  if(inputs.mixD!=null) $('#mixD').value=inputs.mixD; 
+  if(inputs.monthlyVolume!=null) $('#monthlyVolume').value=inputs.monthlyVolume; 
+  if(inputs.includeShip!=null) $('#includeShip').checked=!!inputs.includeShip; 
+  if(inputs.shipCost!=null) $('#shipCost').value=inputs.shipCost; 
+  if(inputs.packsPerOrder!=null) $('#packsPerOrder').value=inputs.packsPerOrder; 
   
-  // --- Initial Load ---
-  function init() {
-      addIngredientRow({name:"Metocin (4-HO-MET)", mg:2, cpmg:0.002});
-      addPackRow({name:'Box/Outer', cost:0.50});
-      addOverheadRow({name: 'Salaries', cost: 5000});
-     addSalespersonRow({ name: "Lead Rep", channels: { retail: true, wholesale: true }, commissionType: 'pct_gross', commissionValue: 5, bonuses: [{ type: 'gross_rev', target: 5000, amount: 250 }] });
-      try {
-          const stored = localStorage.getItem(SCENARIO_KEY);
-          if (stored) { scenarios = JSON.parse(stored); renderScenarios(); }
-      } catch (e) { console.error("Failed to load scenarios", e); scenarios = []; }
-      computeAll();
-  }
+  // Restore dynamic rows
+  $('#oh_rows').innerHTML = '';
+  if(inputs.oh) inputs.oh.forEach((cost, i) => $('#oh_rows').appendChild(makeOhRow(`Overhead ${i+1}`, cost)));
+  
+  $('#salespersons').innerHTML = '';
+  if(inputs.reps) inputs.reps.forEach(repData => {
+      const sp = makeSP();
+      sp.querySelector('.spName').value = repData.name;
+      sp.querySelector('.spR').checked = repData.chR;
+      sp.querySelector('.spW').checked = repData.chW;
+      sp.querySelector('.spD').checked = repData.chD;
+      sp.querySelector('.spType').value = repData.type;
+      sp.querySelector('.spVal').value = repData.val;
+      // Bonuses would need more complex restoration logic if needed
+      $('#salespersons').appendChild(sp);
+  });
 
-  init();
+  render();
+}
+function onSaveScenario(){ const C=calc(); const row=scenarioFromCurrent(C); const list=loadScenarios(); list.unshift(row); saveScenarios(list); drawScenarioRows() }
+function toCSV(){ const list=loadScenarios(); if(!list.length){ alert('No scenarios saved.'); return } const keys=SCENARIO_TABLE_KEYS.filter(c=>c !== 'load'); const header=keys.map(k => (ALL_COLUMNS.find(c=>c.key===k) || {}).label).join(','); const rows=list.map(r=> keys.map(k=> (r[k]??'').toString().replace(/\"/g,'""')).map(x=>'"'+x+'"').join(',')); const csv=[header, ...rows].join('\n'); const blob=new Blob([csv], {type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='scenarios.csv'; a.click(); URL.revokeObjectURL(url) }
 
-})();
+// Capture modal
+const GROUPS = { 
+  'Meta': ['savedAt','label','lastCalculatedAt'], 
+  'Product': ['pills','retailPrice','packsPerDisplay'], 
+  'Costs': ['ingPerPack','packPerPack','dispPerPack','cogs','ohPerPack','shipPerPack'], 
+  'Channels': ['wDisc','dDisc','mixR','mixW','mixD','gmR','gmW','gmD','omR','omW','omD'], 
+  'Blended': ['brev','bgpp','bgmp','bopp','bomp'], 
+  'Commissions': ['salespersonCount','totalComm','totalBonus','commPctGross','commPctOp'] 
+};
+
+function openCaptureModal(){ 
+  wireTips(calc()); // Ensure tooltips are populated
+  const host=$('#cols_groups'); 
+  host.innerHTML=''; 
+  for(const [group,keys] of Object.entries(GROUPS)){ 
+    const card=document.createElement('div'); 
+    card.className='card'; 
+    const h=document.createElement('div'); 
+    h.innerHTML='<strong>'+group+'</strong>'; 
+    card.appendChild(h); 
+    keys.forEach(k=>{ 
+      const c=document.createElement('div'); 
+      c.className='row'; 
+      const id='col_'+k; 
+      const colInfo = ALL_COLUMNS.find(x=>x.key===k) || {label: k, tooltip: ''};
+      c.innerHTML = `<label class="row" style="justify-content:flex-start" data-tip="col_tip_${k}"><input id="${id}" type="checkbox" checked> ${colInfo.label}</label>`; 
+      card.appendChild(c);
+    }); 
+    host.appendChild(card);
+  } 
+  $('#modal').style.display='flex';
+}
+function saveCapture(){ const name = ($('#cap_name').value||'').trim() || 'Custom capture'; const keys=[]; Object.values(GROUPS).flat().forEach(k=>{ if($('#col_'+k).checked) keys.push(k) }); CAPTURES[name]=keys; const opt=document.createElement('option'); opt.value=name; opt.textContent=name; $('#capture_sel').appendChild(opt); $('#capture_sel').value=name; $('#modal').style.display='none' }
+
+// ===== Events =====
+function wireInputs(){ 
+    document.addEventListener('input', e=>{ 
+        const t=e.target; 
+        if((t.type === 'number' || t.type === 'text') && t.closest('.card')){
+            if(t.id==='mixR'||t.id==='mixW'||t.id==='mixD') {
+                enforceMix(t.id);
+            }
+        }
+        if ($('#autoCalc').checked) render();
+    }); 
+    
+    $('#channel_toggles').addEventListener('change', () => {
+        updateChannelStates();
+        enforceMix(null);
+    });
+
+    $('#recalcBtn').onclick = render; 
+    $('#btn_save').onclick = onSaveScenario; 
+    $('#btn_csv').onclick = toCSV; 
+    $('#btn_clear').onclick = ()=>{ localStorage.removeItem(LS_KEY); drawScenarioRows() }; 
+    $('#btn_choose_cols').onclick = openCaptureModal; 
+    $('#modal_close').onclick = ()=> $('#modal').style.display='none'; 
+    $('#save_capture').onclick = saveCapture;
+}
+
+// ===== Boot =====
+function boot(){ 
+    ensureFullCapture(); 
+    initializeTooltipEvents();
+    wireInputs(); 
+    migrateOld(); 
+    updateChannelStates();
+    render(); 
+}
+boot();
 </script>
 </body>
 </html>
