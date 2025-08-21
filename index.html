@@ -258,13 +258,7 @@
   <!-- START: New Sales Commissions Section -->
   <section style="grid-column:1 / -1">
     <h2>Sales Commission Hierarchy <span class="q" data-tip="comm_section_main">?</span></h2>
-    <div class="row">
-      <div><label>Projection period</label>
-        <select id="projPeriod" class="w-160"><option>Daily</option><option>Weekly</option><option selected>Monthly</option><option>Yearly</option></select>
-      </div>
-       <span class="muted">(uses Monthly pack volume × period)</span>
-    </div>
-
+    
     <!-- President Tier -->
     <div class="comm-tier">
         <h3>President of Sales <span class="q" data-tip="comm_pres_tier">?</span></h3>
@@ -303,6 +297,12 @@
     <div class="divider"></div>
     <h2>Commission Projections</h2>
     <div id="comm_proj_table" class="card">
+      <div class="row" style="padding-bottom: 10px;">
+        <div><label>Projection Period View</label>
+          <select id="projPeriod" class="w-160"><option>Daily</option><option>Weekly</option><option selected>Monthly</option><option>Yearly</option></select>
+        </div>
+         <span class="muted" style="align-self: flex-end;">(Calculations are based on the selected period)</span>
+      </div>
       <div class="scroller" style="max-height:400px; overflow:auto;">
         <table id="proj_table_hierarchical">
             <thead>
@@ -1368,6 +1368,36 @@ function wireInputs(){
 
 // ===== Boot =====
 function boot(){ 
+    // Set default values from the image
+    $('#pills').value = 10;
+    $('#retailPrice').value = 57.50;
+    $('#packsPerDisplay').value = 12;
+
+    $('#ingredients').innerHTML = '';
+    $('#ingredients').appendChild(makeIngRow('4-HO-MET', 10, 0.08));
+    $('#ingredients').appendChild(makeIngRow('Ingredient B', 5, 0.10));
+    $('#ingredients').appendChild(makeIngRow('Ingredient C', 2, 0.05));
+
+    $('#pack_rows').innerHTML = '';
+    $('#pack_rows').appendChild(makePackRow('PRODUCT PACKAGE', 1.50));
+    
+    $('#disp_rows').innerHTML = '';
+    $('#disp_rows').appendChild(makeDispRow('DISPLAY BOX', 1.00));
+    $('#disp_rows').appendChild(makeDispRow('SHIPPING BOX', 1.50));
+
+    $('#mixR').value = 100;
+    $('#mixW').value = 0;
+    $('#mixD').value = 0;
+    $('#includeW').checked = false;
+    $('#includeD').checked = false;
+
+    $('#wDisc').value = 25;
+    $('#dDisc').value = 50;
+
+    $('#monthlyVolume').value = 10000;
+    $('#oh_rows').innerHTML = '';
+    $('#oh_rows').appendChild(makeOhRow('Salaries', 25000));
+    
     ensureFullCapture(); 
     initializeTooltipEvents();
     wireInputs(); 
@@ -1379,13 +1409,49 @@ function boot(){
     wireThirdPartyEvents();
     calculateThirdPartyCosts(); 
     
-    // --- Commission Hierarchy Initialization ---
-    $('#president_card').appendChild(createPresidentCard());
-    wireCommissionEvents();
-    $('#add_vp').click();
-    $('#add_rsm').click();
-    $('#add_sp').click();
+    // --- Commission Hierarchy Initialization with Defaults ---
+    $('#president_card').innerHTML = '';
+    $('#vps_container').innerHTML = '';
+    $('#rsms_container').innerHTML = '';
+    $('#sps_container').innerHTML = '';
+
+    const presCard = createPresidentCard();
+    presCard.querySelector('.comm-name').value = "President of Sales";
+    presCard.querySelector('.comm-type').value = "pctGrossRev";
+    presCard.querySelector('.comm-val').value = "1";
+    $('#president_card').appendChild(presCard);
+
+    const vpCard = createVPCard();
+    vpCard.querySelector('.comm-name').value = "VP of Sales";
+    vpCard.querySelector('.comm-type').value = "pctGrossRev";
+    vpCard.querySelector('.comm-val').value = "2";
+    $('#vps_container').appendChild(vpCard);
+    const vpId = vpCard.dataset.id;
+
+    const rsmCard = createRSMCard();
+    rsmCard.querySelector('.comm-name').value = "RSM 1";
+    rsmCard.querySelector('.comm-type').value = "pctGrossRev";
+    rsmCard.querySelector('.comm-val').value = "3";
+    $('#rsms_container').appendChild(rsmCard);
+    const rsmId = rsmCard.dataset.id;
+
+    const spCard = createSPCard();
+    spCard.querySelector('.comm-name').value = "Salesperson 1";
+    spCard.querySelector('.comm-type').value = "pctGrossRev";
+    spCard.querySelector('.comm-val').value = "5";
+    $('#sps_container').appendChild(spCard);
+    const spId = spCard.dataset.id;
     
+    wireCommissionEvents();
+    updateAllDropdowns();
+
+    // Set assignments after dropdowns are populated
+    rsmCard.querySelector('.comm-assign-vp').value = vpId;
+    spCard.querySelector('.comm-assign-rsm').value = rsmId;
+    spCard.querySelector('.comm-ch-assign-vp-r').value = vpId;
+    spCard.querySelector('.comm-ch-assign-vp-w').value = vpId;
+    spCard.querySelector('.comm-ch-assign-vp-d').value = vpId;
+
     render(); 
 }
 boot();
