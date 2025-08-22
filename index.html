@@ -638,7 +638,7 @@ function wireTips(C){
     mix:{title:'Mix %', body:()=> 'Auto‑redistribute keeps R/W/D totaling 100%'},
     priceW:{title:'Wholesale price', body:()=> money3(S.retailPrice)+' × (1 − '+S.wDisc.toFixed(2)+'%) = <b>'+money3(C.priceW)+'</b>'},
     priceD:{title:'Distributor price', body:()=> money3(C.priceW)+' (Wholesale) × (1 − '+S.dDisc.toFixed(2)+'%) = <b>'+money3(C.priceD)+'</b>'},
-    gpR:{title:'Retail GP/pack', body:()=> money3(S.retailPrice)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpR)+'</b>'},
+    gpR:{title:'Retail GP/pack', body:()=> money3(C.priceR)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpR)+'</b>'},
     gpW:{title:'Wholesale GP/pack', body:()=> money3(C.priceW)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpW)+'</b>'},
     gpD:{title:'Distributor GP/pack', body:()=> money3(C.priceD)+' − '+money3(C.cogs)+' = <b>'+money3(C.gpD)+'</b>'},
     gmR:{title:'Retail GM%', body:()=> money3(C.gpR)+' / '+money3(C.priceR)+' = <b>'+pct(C.gmR)+'</b>'},
@@ -670,7 +670,13 @@ function wireTips(C){
     price_input: {title: 'Input: Retail price', body:()=> 'Enter the final consumer price for one pack.'},
     packsDisp_input: {title: 'Input: Packs per display', body:()=> 'How many packs fit into one shipping/store display?'},
     mix_input: {title: 'Input: Mix %', body:()=> 'What percentage of sales comes from this channel?'},
-    wDisc_input: {title: 'Input: Wholesale Discount %', body:()=> 'Discount off retail price for wholesale customers.'},
+    wDisc_input: {title: 'Input: Wholesale Discount %', body:()=> {
+      const wDisc = num($('#wDisc').value);
+      if (wDisc === 50) {
+        return 'KEYSTONE PRICING';
+      }
+      return 'Discount off retail price for wholesale customers.';
+    }},
     dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off WHOLESALE price for distributors.'},
     shipCost_input: {title: 'Input: Shipping Cost', body:()=> 'Enter the cost to ship a single retail order.'},
     packsPerOrder_input: {title: 'Input: Packs per order', body:()=> 'Average number of packs in a single retail order.'},
