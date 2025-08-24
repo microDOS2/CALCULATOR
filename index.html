@@ -703,7 +703,7 @@ function wireTips(C){
     ingredients:{title:'Ingredients', body:()=> 'Σ(mg/pill × pills × $/mg)'},
     k_ing:{title:'Ingredient cost / pack', body:()=> '= <b>'+money3(C.ingPerPack)+'</b>'},
     k_cogs:{title:'COGS / pack', body:()=> money3(C.ingPerPack)+' + '+money3(C.packPerPack)+' + '+money3(C.dispPerPack)+' = <b>'+money3(C.cogs)+'</b>'},
-    k_mg:{title:'Ingredient Cost $/mg', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.ingPerPack)+' / '+mg.toFixed(0)+' mg = <b>'+money3(C.costPerMg)+'</b>':'—' }},
+    k_mg:{title:'Ingredient Cost $/mg & $/kg', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); if(!mg) return '—'; const mgString = `${money3(C.ingPerPack)} / ${mg.toFixed(0)} mg = <b>${money3(C.costPerMg)}/mg</b>`; const kgString = `${money(C.costPerGram)}/g × 1000 = <b>${money(C.costPerGram * 1000)}/kg</b>`; return `${mgString}<br>${kgString}`; }},
     k_g:{title:'Ingredient Cost $/gram', body:()=> { const mg=S.ing.reduce((a,x)=>a+x.mg*S.pills,0); return mg? money3(C.costPerMg)+' × 1000 = <b>'+money(C.costPerGram)+'</b>':'—' }},
     channels:{title:'Channels', body:()=> 'Wholesale/Distributor apply discounts to Retail price.'},
     mix:{title:'Mix %', body:()=> 'Auto‑redistribute keeps R/W/D totaling 100%'},
@@ -1590,8 +1590,8 @@ function boot(){
 
     $('#ingredients').innerHTML = '';
     $('#ingredients').appendChild(makeIngRow('Metocin 4-HO-MET', 2, 0.7));
-    $('#ingredients').appendChild(makeIngRow('Filler', 800, 0.00007));
-    $('#ingredients').appendChild(makeIngRow('Binder', 198, 0.0001));
+    $('#ingredients').appendChild(makeIngRow('Filler', 800, 0.000075));
+    $('#ingredients').appendChild(makeIngRow('Binder', 198, 0.00015));
 
     $('#pack_rows').innerHTML = '';
     $('#pack_rows').appendChild(makePackRow('PRODUCT PACKAGE', 1.5));
