@@ -302,12 +302,12 @@
         <label>Packs to Order</label>
         <input id="po_packs_r" type="number" value="100">
       </div>
-      <div class="card"><div class="muted">Pills per Pack</div><div id="po_pills_r" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Price per Pack</div><div id="po_price_r" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_r" class="big thin">—</div></div>
-      <div class="card"><div class="muted" data-tip="po_profit_pack">Profit per Pack</div><div id="po_profit_pack_r" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Total Order Cost</div><div id="po_total_cost_r" class="big thin">—</div></div>
-      <div class="card"><div class="muted" data-tip="po_profit_total">Total Order Profit</div><div id="po_total_profit_r" class="big thin">—</div></div>
+      <div class="card" data-tip="po_pills_r"><div class="muted">Total Pills in Order</div><div id="po_pills_r" class="big thin">—</div></div>
+      <div class="card" data-tip="po_price_r"><div class="muted">Price per Pack</div><div id="po_price_r" class="big thin">—</div></div>
+      <div class="card" data-tip="po_pill_cost_r"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_r" class="big thin">—</div></div>
+      <div class="card" data-tip="po_profit_pack_r"><div class="muted">Profit per Pack</div><div id="po_profit_pack_r" class="big thin">—</div></div>
+      <div class="card" data-tip="po_total_cost_r"><div class="muted">Total Order Cost</div><div id="po_total_cost_r" class="big thin">—</div></div>
+      <div class="card" data-tip="po_profit_total_r"><div class="muted">Total Order Profit</div><div id="po_total_profit_r" class="big thin">—</div></div>
     </div>
 
     <!-- Wholesale PO -->
@@ -316,12 +316,12 @@
         <label>Packs to Order</label>
         <input id="po_packs_w" type="number" value="1000">
       </div>
-      <div class="card"><div class="muted">Pills per Pack</div><div id="po_pills_w" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Price per Pack</div><div id="po_price_w" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_w" class="big thin">—</div></div>
-      <div class="card"><div class="muted" data-tip="po_profit_pack">Profit per Pack</div><div id="po_profit_pack_w" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Total Order Cost</div><div id="po_total_cost_w" class="big thin">—</div></div>
-      <div class="card"><div class="muted" data-tip="po_profit_total">Total Order Profit</div><div id="po_total_profit_w" class="big thin">—</div></div>
+      <div class="card" data-tip="po_pills_w"><div class="muted">Total Pills in Order</div><div id="po_pills_w" class="big thin">—</div></div>
+      <div class="card" data-tip="po_price_w"><div class="muted">Price per Pack</div><div id="po_price_w" class="big thin">—</div></div>
+      <div class="card" data-tip="po_pill_cost_w"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_w" class="big thin">—</div></div>
+      <div class="card" data-tip="po_profit_pack_w"><div class="muted">Profit per Pack</div><div id="po_profit_pack_w" class="big thin">—</div></div>
+      <div class="card" data-tip="po_total_cost_w"><div class="muted">Total Order Cost</div><div id="po_total_cost_w" class="big thin">—</div></div>
+      <div class="card" data-tip="po_profit_total_w"><div class="muted">Total Order Profit</div><div id="po_total_profit_w" class="big thin">—</div></div>
     </div>
 
     <!-- Distributor PO -->
@@ -330,12 +330,12 @@
         <label>Packs to Order</label>
         <input id="po_packs_d" type="number" value="5000">
       </div>
-      <div class="card"><div class="muted">Pills per Pack</div><div id="po_pills_d" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Price per Pack</div><div id="po_price_d" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_d" class="big thin">—</div></div>
-      <div class="card"><div class="muted" data-tip="po_profit_pack">Profit per Pack</div><div id="po_profit_pack_d" class="big thin">—</div></div>
-      <div class="card"><div class="muted">Total Order Cost</div><div id="po_total_cost_d" class="big thin">—</div></div>
-      <div class="card"><div class="muted" data-tip="po_profit_total">Total Order Profit</div><div id="po_total_profit_d" class="big thin">—</div></div>
+      <div class="card" data-tip="po_pills_d"><div class="muted">Total Pills in Order</div><div id="po_pills_d" class="big thin">—</div></div>
+      <div class="card" data-tip="po_price_d"><div class="muted">Price per Pack</div><div id="po_price_d" class="big thin">—</div></div>
+      <div class="card" data-tip="po_pill_cost_d"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_d" class="big thin">—</div></div>
+      <div class="card" data-tip="po_profit_pack_d"><div class="muted">Profit per Pack</div><div id="po_profit_pack_d" class="big thin">—</div></div>
+      <div class="card" data-tip="po_total_cost_d"><div class="muted">Total Order Cost</div><div id="po_total_cost_d" class="big thin">—</div></div>
+      <div class="card" data-tip="po_profit_total_d"><div class="muted">Total Order Profit</div><div id="po_total_profit_d" class="big thin">—</div></div>
     </div>
   </section>
   <!-- END: Purchase Orders Section -->
@@ -569,8 +569,6 @@ function getState(){
   S.disp = $$('#disp_rows .row').map(r=> num(r.querySelector('.dispCost').value));
   S.oh   = $$('#oh_rows .row').map(r=> num(r.querySelector('.ohCost').value));
   
-  // Commission state is now handled in its own function
-  
   return S;
 }
 
@@ -589,12 +587,23 @@ function calc(){
   const gmR=priceR>0? gpR/priceR:0, gmW=priceW>0? gpW/priceW:0, gmD=priceD>0? gpD/priceD:0;
 
   const ohTotal=S.oh.reduce((a,x)=> a+x, 0);
-  const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0;
+  const activeOhChannels = (S.ohR ? 1 : 0) + (S.ohW ? 1 : 0) + (S.ohD ? 1 : 0);
+  const overheadSharePerChannel = activeOhChannels > 0 ? ohTotal / activeOhChannels : 0;
+  
+  const volumeR = S.monthlyVolume * (S.mixR / 100);
+  const volumeW = S.monthlyVolume * (S.mixW / 100);
+  const volumeD = S.monthlyVolume * (S.mixD / 100);
+  
+  const ohPerPackR = S.ohR && volumeR > 0 ? overheadSharePerChannel / volumeR : 0;
+  const ohPerPackW = S.ohW && volumeW > 0 ? overheadSharePerChannel / volumeW : 0;
+  const ohPerPackD = S.ohD && volumeD > 0 ? overheadSharePerChannel / volumeD : 0;
+  
+  const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0; // Keep blended for KPI
   const shipPerPack = S.includeShip? (S.shipCost/Math.max(1,S.packsPerOrder)) : 0;
 
-  const opR=gpR - (S.ohR?ohPerPack:0) - shipPerPack;
-  const opW=gpW - (S.ohW?ohPerPack:0);
-  const opD=gpD - (S.ohD?ohPerPack:0);
+  const opR=gpR - ohPerPackR - shipPerPack;
+  const opW=gpW - ohPerPackW;
+  const opD=gpD - ohPerPackD;
   const omR=priceR>0? opR/priceR:0, omW=priceW>0? opW/priceW:0, omD=priceD>0? opD/priceD:0;
 
   const mR=S.mixR/100, mW=S.mixW/100, mD=S.mixD/100;
@@ -612,7 +621,6 @@ function calc(){
 
   const commissionResults = calculateAllCommissions(S, {priceR, priceW, priceD, gpR, gpW, gpD});
   
-  // Break-Even Calculation
   const beIncludeOverhead = $('#be_include_overhead').checked;
   const totalFixedCosts = beIncludeOverhead ? S.oh.reduce((a,x)=> a+x, 0) : 0;
   const be_units_R = opR > 0 ? totalFixedCosts / opR : Infinity;
@@ -625,7 +633,7 @@ function calc(){
   const be_rev_D = be_units_D * priceD;
   const be_rev_B = be_units_B * brev;
 
-  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B };
+  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B };
 }
 
 function render(){
@@ -669,7 +677,7 @@ function render(){
   renderCommissionTable(C.commissionResults);
   
   // Render Purchase Orders
-  calculatePurchaseOrders();
+  calculatePurchaseOrders(C);
 
   // tooltips
   wireTips(C);
@@ -707,9 +715,9 @@ function wireTips(C){
     gmR:{title:'Retail GM%', body:()=> money3(C.gpR)+' / '+money3(C.priceR)+' = <b>'+pct(C.gmR)+'</b>'},
     gmW:{title:'Wholesale GM%', body:()=> money3(C.gpW)+' / '+money3(C.priceW)+' = <b>'+pct(C.gmW)+'</b>'},
     gmD:{title:'Distributor GM%', body:()=> money3(C.gpD)+' / '+money3(C.priceD)+' = <b>'+pct(C.gmD)+'</b>'},
-    opR:{title:'Retail OP/pack', body:()=> money3(C.gpR)+' − '+(S.ohR?money3(C.ohPerPack):'$0')+' − '+ship+' = <b>'+money3(C.opR)+'</b>'},
-    opW:{title:'Wholesale OP/pack', body:()=> money3(C.gpW)+' − '+(S.ohW?money3(C.ohPerPack):'$0')+' = <b>'+money3(C.opW)+'</b>'},
-    opD:{title:'Distributor OP/pack', body:()=> money3(C.gpD)+' − '+(S.ohD?money3(C.ohPerPack):'$0')+' = <b>'+money3(C.opD)+'</b>'},
+    opR:{title:'Retail OP/pack', body:()=> `${money3(C.gpR)} - ${money3(C.ohPerPackR)} (Overhead) - ${ship} = <b>${money3(C.opR)}</b>`},
+    opW:{title:'Wholesale OP/pack', body:()=> `${money3(C.gpW)} - ${money3(C.ohPerPackW)} (Overhead) = <b>${money3(C.opW)}</b>`},
+    opD:{title:'Distributor OP/pack', body:()=> `${money3(C.gpD)} - ${money3(C.ohPerPackD)} (Overhead) = <b>${money3(C.opD)}</b>`},
     omR:{title:'Retail OM%', body:()=> money3(C.opR)+' / '+money3(C.priceR)+' = <b>'+pct(C.omR)+'</b>'},
     omW:{title:'Wholesale OM%', body:()=> money3(C.opW)+' / '+money3(C.priceW)+' = <b>'+pct(C.omW)+'</b>'},
     omD:{title:'Distributor OM%', body:()=> money3(C.opD)+' / '+money3(C.priceD)+' = <b>'+pct(C.omD)+'</b>'},
@@ -789,8 +797,26 @@ function wireTips(C){
     
     // Purchase Order Tooltips
     po_section: {title: 'Purchase Orders', body:()=> 'Create a sample purchase order for any channel to see the total cost and profitability for that specific order.'},
-    po_profit_pack: {title: 'Profit per Pack', body:()=> 'Shows the profit for a single pack in this order. This value is dynamic: it shows **Operating Profit** if "Include Monthly Overhead" is checked in the Break-Even section, otherwise it shows **Gross Profit**.'},
-    po_profit_total: {title: 'Total Order Profit', body:()=> 'The total profit for the entire purchase order, based on the dynamic "Profit per Pack" value.'},
+    po_pills_r: {title: 'Total Pills (Retail)', body:()=> `${num($('#po_packs_r').value).toLocaleString()} packs × ${S.pills} pills/pack = <b>${(num($('#po_packs_r').value) * S.pills).toLocaleString()}</b> total pills`},
+    po_price_r: {title: 'Price per Pack (Retail)', body:()=> `Retail price per pack = <b>${money3(C.priceR)}</b>`},
+    po_pill_cost_r: {title: 'Cost per Pill (Retail)', body:()=> S.pills > 0 ? `${money3(C.priceR)} / ${S.pills} pills = <b>${money3(C.priceR / S.pills)}</b> per pill` : '—'},
+    po_profit_pack_r: {title: 'Profit per Pack (Retail)', body:()=> beIncludeOverhead && S.ohR ? `Using <b>Operating Profit</b>, which includes <b>${money3(C.ohPerPackR)}</b> in overhead for this channel.` : 'Using <b>Gross Profit</b>. Overhead is not included.'},
+    po_total_cost_r: {title: 'Total Cost (Retail)', body:()=> `${num($('#po_packs_r').value).toLocaleString()} packs × ${money3(C.priceR)}/pack = <b>${money(num($('#po_packs_r').value) * C.priceR)}</b>`},
+    po_profit_total_r: {title: 'Total Profit (Retail)', body:()=> { const profit = beIncludeOverhead && S.ohR ? C.opR : C.gpR; const packs = num($('#po_packs_r').value); return `${packs.toLocaleString()} packs × ${money3(profit)}/pack (${beIncludeOverhead && S.ohR ? 'Op. Profit' : 'Gross Profit'}) = <b>${money(packs * profit)}</b>`; }},
+    
+    po_pills_w: {title: 'Total Pills (Wholesale)', body:()=> `${num($('#po_packs_w').value).toLocaleString()} packs × ${S.pills} pills/pack = <b>${(num($('#po_packs_w').value) * S.pills).toLocaleString()}</b> total pills`},
+    po_price_w: {title: 'Price per Pack (Wholesale)', body:()=> `Wholesale price per pack = <b>${money3(C.priceW)}</b>`},
+    po_pill_cost_w: {title: 'Cost per Pill (Wholesale)', body:()=> S.pills > 0 ? `${money3(C.priceW)} / ${S.pills} pills = <b>${money3(C.priceW / S.pills)}</b> per pill` : '—'},
+    po_profit_pack_w: {title: 'Profit per Pack (Wholesale)', body:()=> beIncludeOverhead && S.ohW ? `Using <b>Operating Profit</b>, which includes <b>${money3(C.ohPerPackW)}</b> in overhead for this channel.` : 'Using <b>Gross Profit</b>. Overhead is not included.'},
+    po_total_cost_w: {title: 'Total Cost (Wholesale)', body:()=> `${num($('#po_packs_w').value).toLocaleString()} packs × ${money3(C.priceW)}/pack = <b>${money(num($('#po_packs_w').value) * C.priceW)}</b>`},
+    po_profit_total_w: {title: 'Total Profit (Wholesale)', body:()=> { const profit = beIncludeOverhead && S.ohW ? C.opW : C.gpW; const packs = num($('#po_packs_w').value); return `${packs.toLocaleString()} packs × ${money3(profit)}/pack (${beIncludeOverhead && S.ohW ? 'Op. Profit' : 'Gross Profit'}) = <b>${money(packs * profit)}</b>`; }},
+
+    po_pills_d: {title: 'Total Pills (Distributor)', body:()=> `${num($('#po_packs_d').value).toLocaleString()} packs × ${S.pills} pills/pack = <b>${(num($('#po_packs_d').value) * S.pills).toLocaleString()}</b> total pills`},
+    po_price_d: {title: 'Price per Pack (Distributor)', body:()=> `Distributor price per pack = <b>${money3(C.priceD)}</b>`},
+    po_pill_cost_d: {title: 'Cost per Pill (Distributor)', body:()=> S.pills > 0 ? `${money3(C.priceD)} / ${S.pills} pills = <b>${money3(C.priceD / S.pills)}</b> per pill` : '—'},
+    po_profit_pack_d: {title: 'Profit per Pack (Distributor)', body:()=> beIncludeOverhead && S.ohD ? `Using <b>Operating Profit</b>, which includes <b>${money3(C.ohPerPackD)}</b> in overhead for this channel.` : 'Using <b>Gross Profit</b>. Overhead is not included.'},
+    po_total_cost_d: {title: 'Total Cost (Distributor)', body:()=> `${num($('#po_packs_d').value).toLocaleString()} packs × ${money3(C.priceD)}/pack = <b>${money(num($('#po_packs_d').value) * C.priceD)}</b>`},
+    po_profit_total_d: {title: 'Total Profit (Distributor)', body:()=> { const profit = beIncludeOverhead && S.ohD ? C.opD : C.gpD; const packs = num($('#po_packs_d').value); return `${packs.toLocaleString()} packs × ${money3(profit)}/pack (${beIncludeOverhead && S.ohD ? 'Op. Profit' : 'Gross Profit'}) = <b>${money(packs * profit)}</b>`; }},
   };
 
   ALL_COLUMNS.forEach(col => {
@@ -1449,15 +1475,15 @@ function wireCommissionEvents() {
 // ===== END: Commission Hierarchy Logic =====
 
 // ===== START: Purchase Order Logic =====
-function calculatePurchaseOrders() {
-    const C = calc();
+function calculatePurchaseOrders(C) {
+    if (!C) C = calc(); // Ensure we have calculation results
     const { S } = C;
     const includeOverhead = $('#be_include_overhead').checked;
 
     // Retail
     const packsR = num($('#po_packs_r').value);
     const priceR = C.priceR;
-    const profitPerPackR = includeOverhead ? C.opR : C.gpR;
+    const profitPerPackR = includeOverhead && S.ohR ? C.opR : C.gpR;
     $('#po_pills_r').textContent = (packsR * S.pills).toLocaleString();
     $('#po_price_r').textContent = money3(priceR);
     $('#po_pill_cost_r').textContent = S.pills > 0 ? money3(priceR / S.pills) : '—';
@@ -1468,7 +1494,7 @@ function calculatePurchaseOrders() {
     // Wholesale
     const packsW = num($('#po_packs_w').value);
     const priceW = C.priceW;
-    const profitPerPackW = includeOverhead ? C.opW : C.gpW;
+    const profitPerPackW = includeOverhead && S.ohW ? C.opW : C.gpW;
     $('#po_pills_w').textContent = (packsW * S.pills).toLocaleString();
     $('#po_price_w').textContent = money3(priceW);
     $('#po_pill_cost_w').textContent = S.pills > 0 ? money3(priceW / S.pills) : '—';
@@ -1479,7 +1505,7 @@ function calculatePurchaseOrders() {
     // Distributor
     const packsD = num($('#po_packs_d').value);
     const priceD = C.priceD;
-    const profitPerPackD = includeOverhead ? C.opD : C.gpD;
+    const profitPerPackD = includeOverhead && S.ohD ? C.opD : C.gpD;
     $('#po_pills_d').textContent = (packsD * S.pills).toLocaleString();
     $('#po_price_d').textContent = money3(priceD);
     $('#po_pill_cost_d').textContent = S.pills > 0 ? money3(priceD / S.pills) : '—';
@@ -1498,10 +1524,11 @@ function wirePOEvents() {
         });
     });
 
-    $('#po_packs_r').addEventListener('input', calculatePurchaseOrders);
-    $('#po_packs_w').addEventListener('input', calculatePurchaseOrders);
-    $('#po_packs_d').addEventListener('input', calculatePurchaseOrders);
-    $('#be_include_overhead').addEventListener('change', calculatePurchaseOrders);
+    // All PO-related inputs should trigger a full re-render to update tooltips
+    $('#po_packs_r').addEventListener('input', render);
+    $('#po_packs_w').addEventListener('input', render);
+    $('#po_packs_d').addEventListener('input', render);
+    $('#be_include_overhead').addEventListener('change', render);
 }
 // ===== END: Purchase Order Logic =====
 
@@ -1510,6 +1537,9 @@ function wirePOEvents() {
 function wireInputs(){ 
     document.addEventListener('input', e => {
         const t = e.target;
+        
+        // Exclude PO inputs from this general listener to avoid double-rendering
+        if (t.id.startsWith('po_packs_')) return;
 
         // Handle pill count to auto-update retail price
         if (t.id === 'pills') {
