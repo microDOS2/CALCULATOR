@@ -185,8 +185,7 @@
           <div><label>Operating margin %</label><input id="omR" data-tip="omR" class="w-120" type="text" value="0%" readonly></div>
         </div>
         <div class="row">
-          <div><label>Shipping / retail order (USD) <span class="q" data-tip="shipCost">?</span></label><input id="shipCost" class="w-120" type="number" step="0.01" value="2.50" data-tip="shipCost_input"></div>
-          <div><label>Packs / retail order</label><input id="packsPerOrder" class="w-120" type="number" value="1" data-tip="packsPerOrder_input"></div>
+          <div><label>Shipping per pack (USD) <span class="q" data-tip="shipCost">?</span></label><input id="shippingPerPack" class="w-120" type="number" step="0.01" value="2.50" data-tip="shipCost_input"></div>
           <label class="row"><input id="includeShip" type="checkbox" checked> Include shipping</label>
         </div>
       </div>
@@ -555,8 +554,7 @@ function getState(){
   S.retailPrice = num($('#retailPrice').value);
   S.packsPerDisplay = Math.max(1, num($('#packsPerDisplay').value));
   S.includeShip = $('#includeShip')? $('#includeShip').checked : true;
-  S.shipCost = num($('#shipCost')?.value || 0);
-  S.packsPerOrder = Math.max(1, num($('#packsPerOrder')?.value || 1));
+  S.shippingPerPack = num($('#shippingPerPack')?.value || 0);
   S.wDisc = num($('#wDisc').value);
   S.dDisc = num($('#dDisc').value);
   S.mixR = $('#includeR').checked ? num($('#mixR').value) : 0;
@@ -599,7 +597,7 @@ function calc(){
   const ohPerPackD = S.ohD && volumeD > 0 ? overheadSharePerChannel / volumeD : 0;
   
   const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0; // Keep blended for KPI
-  const shipPerPack = S.includeShip? (S.shipCost/Math.max(1,S.packsPerOrder)) : 0;
+  const shipPerPack = S.includeShip ? S.shippingPerPack : 0;
   
   const shippingBoxCostW = 5 / 100; // $5 per 100 packs
   const shippingBoxCostD = 5 / 5000; // $5 per 5000 packs
@@ -795,8 +793,7 @@ function wireTips(C){
       return 'Discount off retail price for wholesale customers.';
     }},
     dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off WHOLESALE price for distributors.'},
-    shipCost_input: {title: 'Input: Shipping Cost', body:()=> 'Enter the cost to ship a single retail order.'},
-    packsPerOrder_input: {title: 'Input: Packs per order', body:()=> 'Average number of packs in a single retail order.'},
+    shipCost_input: {title: 'Input: Shipping per pack', body:()=> 'Enter the shipping cost for a single retail pack.'},
     monthlyVolume_input: {title: 'Input: Monthly Volume', body:()=> 'Total number of packs sold across all channels in a month.'},
     ingName_input: {title: 'Input: Ingredient Name', body:()=> 'Name of the ingredient.'},
     ingMg_input: {title: 'Input: Milligrams per Pill', body:()=> 'How many milligrams of this ingredient are in one pill.'},
@@ -1006,7 +1003,7 @@ function scenarioFromCurrent(C){
   row.totalOpProfit = money(C.commissionResults?.totalOpProfit || 0);
   row.anonymous = 'Anonymous';
   row.if = 'IF';
-  row.__inputs={ pills:S.pills, retailPrice:S.retailPrice, packsPerDisplay:S.packsPerDisplay, wDisc:S.wDisc, dDisc:S.dDisc, mixR:S.mixR, mixW:S.mixW, mixD:S.mixD, monthlyVolume:S.monthlyVolume, includeShip:S.includeShip, shipCost:S.shipCost, packsPerOrder:S.packsPerOrder, oh: S.oh }; 
+  row.__inputs={ pills:S.pills, retailPrice:S.retailPrice, packsPerDisplay:S.packsPerDisplay, wDisc:S.wDisc, dDisc:S.dDisc, mixR:S.mixR, mixW:S.mixW, mixD:S.mixD, monthlyVolume:S.monthlyVolume, includeShip:S.includeShip, shippingPerPack:S.shippingPerPack, oh: S.oh }; 
   return row 
 }
 function drawScenarioRows(){ 
@@ -1041,8 +1038,7 @@ function restoreScenario(inputs){
   if(inputs.mixD!=null) $('#mixD').value=inputs.mixD; 
   if(inputs.monthlyVolume!=null) $('#monthlyVolume').value=inputs.monthlyVolume; 
   if(inputs.includeShip!=null) $('#includeShip').checked=!!inputs.includeShip; 
-  if(inputs.shipCost!=null) $('#shipCost').value=inputs.shipCost; 
-  if(inputs.packsPerOrder!=null) $('#packsPerOrder').value=inputs.packsPerOrder; 
+  if(inputs.shippingPerPack!=null) $('#shippingPerPack').value=inputs.shippingPerPack; 
   
   // Restore dynamic rows
   $('#oh_rows').innerHTML = '';
@@ -1656,8 +1652,7 @@ function boot(){
     $('#mixD').value = 0;
     $('#wDisc').value = 50;
     $('#dDisc').value = 25; 
-    $('#packsPerOrder').value = 1;
-    $('#shipCost').value = 7.95;
+    $('#shippingPerPack').value = 2.50;
 
     $('#monthlyVolume').value = 10000;
     $('#oh_rows').innerHTML = '';
