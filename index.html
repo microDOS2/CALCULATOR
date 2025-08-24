@@ -314,7 +314,7 @@
     <div id="po-wholesale" class="po-content">
       <div class="card">
         <label>Packs to Order</label>
-        <input id="po_packs_w" type="number" value="1000">
+        <input id="po_packs_w" type="number" value="100">
       </div>
       <div class="card" data-tip="po_pills_w"><div class="muted">Total Pills in Order</div><div id="po_pills_w" class="big thin">—</div></div>
       <div class="card" data-tip="po_price_w"><div class="muted">Price per Pack</div><div id="po_price_w" class="big thin">—</div></div>
@@ -600,10 +600,13 @@ function calc(){
   
   const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0; // Keep blended for KPI
   const shipPerPack = S.includeShip? (S.shipCost/Math.max(1,S.packsPerOrder)) : 0;
+  
+  const shippingBoxCostW = 5 / 100; // $5 per 100 packs
+  const shippingBoxCostD = 5 / 5000; // $5 per 5000 packs
 
   const opR=gpR - ohPerPackR - shipPerPack;
-  const opW=gpW - ohPerPackW;
-  const opD=gpD - ohPerPackD;
+  const opW=gpW - ohPerPackW - shippingBoxCostW;
+  const opD=gpD - ohPerPackD - shippingBoxCostD;
   const omR=priceR>0? opR/priceR:0, omW=priceW>0? opW/priceW:0, omD=priceD>0? opD/priceD:0;
 
   const mR=S.mixR/100, mW=S.mixW/100, mD=S.mixD/100;
@@ -633,7 +636,7 @@ function calc(){
   const be_rev_D = be_units_D * priceD;
   const be_rev_B = be_units_B * brev;
 
-  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B };
+  return {S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B, shippingBoxCostW, shippingBoxCostD };
 }
 
 function render(){
@@ -667,11 +670,54 @@ function render(){
   $('#kpi_bomp').textContent = pct(C.bomp);
 
   // Render Break-Even
-  const formatBE = (units, rev) => isFinite(units) ? `${Math.ceil(units).toLocaleString()} packs<br><span class="muted">${money(rev)}</span>` : 'Unprofitable';
-  $('#be_retail').innerHTML = formatBE(C.be_units_R, C.be_rev_R);
-  $('#be_wholesale').innerHTML = formatBE(C.be_units_W, C.be_rev_W);
-  $('#be_distributor').innerHTML = formatBE(C.be_units_D, C.be_rev_D);
-  $('#be_blended').innerHTML = formatBE(C.be_units_B, C.be_rev_B);
+  const formatRetailBE = (units, rev, pillsPerPack, packsPerDisplay) => {
+      if (!isFinite(units)) return 'Unprofitable';
+      const totalPills = Math.ceil(units) * pillsPerPack;
+      const displayBoxes = Math.ceil(units / packsPerDisplay);
+      return `
+          <div class="big thin">${Math.ceil(units).toLocaleString()} packs</div>
+          <div class="muted" style="font-size:12px;">
+              (${totalPills.toLocaleString()} pills)<br>
+              (${displayBoxes.toLocaleString()} display boxes)<br>
+              ${money(rev)}
+          </div>
+      `;
+  };
+  
+  const formatMasterPackBE = (units, rev, unitType, packsPerUnit) => {
+      if (!isFinite(units)) return 'Unprofitable';
+      const masterUnits = units / packsPerUnit;
+      return `
+          <div class="big thin">${masterUnits.toFixed(2)}</div>
+          <div>${unitType}</div>
+          <div class="muted" style="font-size:12px;">
+              (${Math.ceil(units).toLocaleString()} individual packs)<br>
+              ${money(rev)}
+          </div>
+      `;
+  };
+
+  const formatBlendedBE = (units, rev, mixR, mixW, mixD) => {
+      if (!isFinite(units)) return 'Unprofitable';
+      const packsR = Math.ceil(units * (mixR / 100));
+      const packsW = Math.ceil(units * (mixW / 100));
+      const packsD = Math.ceil(units * (mixD / 100));
+      return `
+          <div class="big thin">${Math.ceil(units).toLocaleString()} total packs</div>
+          <div class="muted" style="font-size:12px; text-align:left;">
+              Retail: ${packsR.toLocaleString()} packs<br>
+              Wholesale: ${packsW.toLocaleString()} packs<br>
+              Distributor: ${packsD.toLocaleString()} packs<br>
+              <b>Total Revenue: ${money(rev)}</b>
+          </div>
+      `;
+  };
+  
+  $('#be_retail').innerHTML = formatRetailBE(C.be_units_R, C.be_rev_R, S.pills, S.packsPerDisplay);
+  $('#be_wholesale').innerHTML = formatMasterPackBE(C.be_units_W, C.be_rev_W, 'WHOLESALE master packs', 100);
+  $('#be_distributor').innerHTML = formatMasterPackBE(C.be_units_D, C.be_rev_D, 'MASTER DISTRIBUTOR PACKS', 5000);
+  $('#be_blended').innerHTML = formatBlendedBE(C.be_units_B, C.be_rev_B, S.mixR, S.mixW, S.mixD);
+
 
   // Render new commission table
   renderCommissionTable(C.commissionResults);
@@ -716,8 +762,8 @@ function wireTips(C){
     gmW:{title:'Wholesale GM%', body:()=> money3(C.gpW)+' / '+money3(C.priceW)+' = <b>'+pct(C.gmW)+'</b>'},
     gmD:{title:'Distributor GM%', body:()=> money3(C.gpD)+' / '+money3(C.priceD)+' = <b>'+pct(C.gmD)+'</b>'},
     opR:{title:'Retail OP/pack', body:()=> `${money3(C.gpR)} - ${money3(C.ohPerPackR)} (Overhead) - ${ship} = <b>${money3(C.opR)}</b>`},
-    opW:{title:'Wholesale OP/pack', body:()=> `${money3(C.gpW)} - ${money3(C.ohPerPackW)} (Overhead) = <b>${money3(C.opW)}</b>`},
-    opD:{title:'Distributor OP/pack', body:()=> `${money3(C.gpD)} - ${money3(C.ohPerPackD)} (Overhead) = <b>${money3(C.opD)}</b>`},
+    opW:{title:'Wholesale OP/pack', body:()=> `${money3(C.gpW)} - ${money3(C.ohPerPackW)} (Overhead) - ${money3(C.shippingBoxCostW)} (Box) = <b>${money3(C.opW)}</b>`},
+    opD:{title:'Distributor OP/pack', body:()=> `${money3(C.gpD)} - ${money3(C.ohPerPackD)} (Overhead) - ${money3(C.shippingBoxCostD)} (Box) = <b>${money3(C.opD)}</b>`},
     omR:{title:'Retail OM%', body:()=> money3(C.opR)+' / '+money3(C.priceR)+' = <b>'+pct(C.omR)+'</b>'},
     omW:{title:'Wholesale OM%', body:()=> money3(C.opW)+' / '+money3(C.priceW)+' = <b>'+pct(C.omW)+'</b>'},
     omD:{title:'Distributor OM%', body:()=> money3(C.opD)+' / '+money3(C.priceD)+' = <b>'+pct(C.omD)+'</b>'},
@@ -789,7 +835,7 @@ function wireTips(C){
     comm_bonuses: {title: 'Target Bonuses', body:()=> 'Add performance-based bonuses. Select a metric (Units, Revenue, or Profit), set a threshold, and define the bonus amount paid when the threshold is met.'},
 
     // Break-Even Tooltips
-    be_section: {title: 'Break-Even Analysis', body:()=> 'Calculates the number of packs to sell to cover all fixed costs (from Monthly Costs). If a channel is unprofitable (negative operating profit per pack), it can never break even. Uncheck the box to see the break-even point without fixed overhead.'},
+    be_section: {title: 'Break-Even Analysis', body:()=> `Calculates the units needed to cover fixed costs. A "Pack" is the base retail unit, containing ${S.pills} pills. A "WHOLESALE master pack" = 100 packs. A "MASTER DISTRIBUTOR PACK" = 5000 packs.`},
     be_retail: {title: 'Retail Break-Even', body:()=> `${beFixedCosts} / Retail Operating Profit per Pack`},
     be_wholesale: {title: 'Wholesale Break-Even', body:()=> `${beFixedCosts} / Wholesale Operating Profit per Pack`},
     be_distributor: {title: 'Distributor Break-Even', body:()=> `${beFixedCosts} / Distributor Operating Profit per Pack`},
