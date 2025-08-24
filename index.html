@@ -92,6 +92,13 @@
   .level-rsm { padding-left: 40px !important; }
   .level-sp { padding-left: 60px !important; font-style: italic; }
   .total-row { font-weight: bold; border-top: 2px solid ButtonBorder; }
+  
+  /* Purchase Order Section Styles */
+  .po-tabs { display: flex; gap: 4px; border-bottom: 1px solid ButtonBorder; margin-bottom: 12px; }
+  .po-tab { padding: 8px 12px; border: 1px solid ButtonBorder; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; background: color-mix(in srgb, Field 90%, CanvasText 10%); }
+  .po-tab.active { background: Field; font-weight: bold; }
+  .po-content { display: none; }
+  .po-content.active { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 </style>
 </head>
 <body>
@@ -279,6 +286,59 @@
     </div>
     
   </section>
+
+  <!-- START: Purchase Orders Section -->
+  <section style="grid-column:1 / -1">
+    <h2>Purchase Orders <span class="q" data-tip="po_section">?</span></h2>
+    <div class="po-tabs">
+      <div class="po-tab active" data-tab="retail">Retail</div>
+      <div class="po-tab" data-tab="wholesale">Wholesale</div>
+      <div class="po-tab" data-tab="distributor">Distributor</div>
+    </div>
+    
+    <!-- Retail PO -->
+    <div id="po-retail" class="po-content active">
+      <div class="card">
+        <label>Packs to Order</label>
+        <input id="po_packs_r" type="number" value="100">
+      </div>
+      <div class="card"><div class="muted">Pills per Pack</div><div id="po_pills_r" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Price per Pack</div><div id="po_price_r" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_r" class="big thin">—</div></div>
+      <div class="card"><div class="muted" data-tip="po_profit_pack">Profit per Pack</div><div id="po_profit_pack_r" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Total Order Cost</div><div id="po_total_cost_r" class="big thin">—</div></div>
+      <div class="card"><div class="muted" data-tip="po_profit_total">Total Order Profit</div><div id="po_total_profit_r" class="big thin">—</div></div>
+    </div>
+
+    <!-- Wholesale PO -->
+    <div id="po-wholesale" class="po-content">
+      <div class="card">
+        <label>Packs to Order</label>
+        <input id="po_packs_w" type="number" value="1000">
+      </div>
+      <div class="card"><div class="muted">Pills per Pack</div><div id="po_pills_w" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Price per Pack</div><div id="po_price_w" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_w" class="big thin">—</div></div>
+      <div class="card"><div class="muted" data-tip="po_profit_pack">Profit per Pack</div><div id="po_profit_pack_w" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Total Order Cost</div><div id="po_total_cost_w" class="big thin">—</div></div>
+      <div class="card"><div class="muted" data-tip="po_profit_total">Total Order Profit</div><div id="po_total_profit_w" class="big thin">—</div></div>
+    </div>
+
+    <!-- Distributor PO -->
+    <div id="po-distributor" class="po-content">
+       <div class="card">
+        <label>Packs to Order</label>
+        <input id="po_packs_d" type="number" value="5000">
+      </div>
+      <div class="card"><div class="muted">Pills per Pack</div><div id="po_pills_d" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Price per Pack</div><div id="po_price_d" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Channel Cost per Pill</div><div id="po_pill_cost_d" class="big thin">—</div></div>
+      <div class="card"><div class="muted" data-tip="po_profit_pack">Profit per Pack</div><div id="po_profit_pack_d" class="big thin">—</div></div>
+      <div class="card"><div class="muted">Total Order Cost</div><div id="po_total_cost_d" class="big thin">—</div></div>
+      <div class="card"><div class="muted" data-tip="po_profit_total">Total Order Profit</div><div id="po_total_profit_d" class="big thin">—</div></div>
+    </div>
+  </section>
+  <!-- END: Purchase Orders Section -->
 
   <!-- START: New Sales Commissions Section -->
   <section style="grid-column:1 / -1">
@@ -607,6 +667,9 @@ function render(){
 
   // Render new commission table
   renderCommissionTable(C.commissionResults);
+  
+  // Render Purchase Orders
+  calculatePurchaseOrders();
 
   // tooltips
   wireTips(C);
@@ -723,6 +786,11 @@ function wireTips(C){
     be_wholesale: {title: 'Wholesale Break-Even', body:()=> `${beFixedCosts} / Wholesale Operating Profit per Pack`},
     be_distributor: {title: 'Distributor Break-Even', body:()=> `${beFixedCosts} / Distributor Operating Profit per Pack`},
     be_blended: {title: 'Blended Break-Even', body:()=> `${beFixedCosts} / Blended Operating Profit per Pack`},
+    
+    // Purchase Order Tooltips
+    po_section: {title: 'Purchase Orders', body:()=> 'Create a sample purchase order for any channel to see the total cost and profitability for that specific order.'},
+    po_profit_pack: {title: 'Profit per Pack', body:()=> 'Shows the profit for a single pack in this order. This value is dynamic: it shows **Operating Profit** if "Include Monthly Overhead" is checked in the Break-Even section, otherwise it shows **Gross Profit**.'},
+    po_profit_total: {title: 'Total Order Profit', body:()=> 'The total profit for the entire purchase order, based on the dynamic "Profit per Pack" value.'},
   };
 
   ALL_COLUMNS.forEach(col => {
@@ -1380,6 +1448,63 @@ function wireCommissionEvents() {
 }
 // ===== END: Commission Hierarchy Logic =====
 
+// ===== START: Purchase Order Logic =====
+function calculatePurchaseOrders() {
+    const C = calc();
+    const { S } = C;
+    const includeOverhead = $('#be_include_overhead').checked;
+
+    // Retail
+    const packsR = num($('#po_packs_r').value);
+    const priceR = C.priceR;
+    const profitPerPackR = includeOverhead ? C.opR : C.gpR;
+    $('#po_pills_r').textContent = (packsR * S.pills).toLocaleString();
+    $('#po_price_r').textContent = money3(priceR);
+    $('#po_pill_cost_r').textContent = S.pills > 0 ? money3(priceR / S.pills) : '—';
+    $('#po_profit_pack_r').textContent = money3(profitPerPackR);
+    $('#po_total_cost_r').textContent = money(packsR * priceR);
+    $('#po_total_profit_r').textContent = money(packsR * profitPerPackR);
+
+    // Wholesale
+    const packsW = num($('#po_packs_w').value);
+    const priceW = C.priceW;
+    const profitPerPackW = includeOverhead ? C.opW : C.gpW;
+    $('#po_pills_w').textContent = (packsW * S.pills).toLocaleString();
+    $('#po_price_w').textContent = money3(priceW);
+    $('#po_pill_cost_w').textContent = S.pills > 0 ? money3(priceW / S.pills) : '—';
+    $('#po_profit_pack_w').textContent = money3(profitPerPackW);
+    $('#po_total_cost_w').textContent = money(packsW * priceW);
+    $('#po_total_profit_w').textContent = money(packsW * profitPerPackW);
+
+    // Distributor
+    const packsD = num($('#po_packs_d').value);
+    const priceD = C.priceD;
+    const profitPerPackD = includeOverhead ? C.opD : C.gpD;
+    $('#po_pills_d').textContent = (packsD * S.pills).toLocaleString();
+    $('#po_price_d').textContent = money3(priceD);
+    $('#po_pill_cost_d').textContent = S.pills > 0 ? money3(priceD / S.pills) : '—';
+    $('#po_profit_pack_d').textContent = money3(profitPerPackD);
+    $('#po_total_cost_d').textContent = money(packsD * priceD);
+    $('#po_total_profit_d').textContent = money(packsD * profitPerPackD);
+}
+
+function wirePOEvents() {
+    $$('.po-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            $$('.po-tab').forEach(t => t.classList.remove('active'));
+            $$('.po-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            $(`#po-${tab.dataset.tab}`).classList.add('active');
+        });
+    });
+
+    $('#po_packs_r').addEventListener('input', calculatePurchaseOrders);
+    $('#po_packs_w').addEventListener('input', calculatePurchaseOrders);
+    $('#po_packs_d').addEventListener('input', calculatePurchaseOrders);
+    $('#be_include_overhead').addEventListener('change', calculatePurchaseOrders);
+}
+// ===== END: Purchase Order Logic =====
+
 
 // ===== Events =====
 function wireInputs(){ 
@@ -1518,6 +1643,9 @@ function boot(){
     spCard.querySelector('.comm-ch-assign-vp-r').value = vpId;
     spCard.querySelector('.comm-ch-assign-vp-w').value = vpId;
     spCard.querySelector('.comm-ch-assign-vp-d').value = vpId;
+
+    // --- Purchase Order Initialization ---
+    wirePOEvents();
 
     render(); 
 }
