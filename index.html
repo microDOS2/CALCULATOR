@@ -821,7 +821,7 @@ function wireTips(C){
     }},
     dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off WHOLESALE price for distributors.'},
     shipCost_input: {title: 'Input: Shipping per pack', body:()=> 'Enter the shipping cost for a single retail pack.'},
-    monthlyVolume_input: {title: 'Input: Monthly Volume', body:()=> 'Total number of packs sold across all channels in a month.'},
+    monthlyVolume_input: {title: 'Input: Monthly Volume', body:()=> `Total Overhead of ${money(LATEST_CALC.ohTotal)} / ${LATEST_CALC.S.monthlyVolume.toLocaleString()} packs = <b>${money3(LATEST_CALC.ohPerPack)}/pack</b>`},
     ingName_input: {title: 'Input: Ingredient Name', body:()=> 'Name of the ingredient.'},
     ingMg_input: {title: 'Input: Milligrams per Pill', body:()=> 'How many milligrams of this ingredient are in one pill.'},
     ingUsdMg_input: {title: 'Input: Cost per Milligram', body:()=> 'The cost for one milligram of this ingredient.'},
