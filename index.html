@@ -534,10 +534,10 @@ $('#add_sku').onclick = ()=>{
         price: 57.50,
         innerPkg: 1.75,
         outerBox: 1.75,
-        displayBox: 1.00,
-        packsPerDisplay: 6,
-        shippingBox: 1.50,
-        packsPerShipBox: 24
+        displayBox: 0,
+        packsPerDisplay: 1,
+        shippingBox: 1.5,
+        packsPerShipBox: 1
     })); 
     updateOrderComposition(); 
     updateMonthlyVolumeInputs();
@@ -1084,7 +1084,7 @@ function drawScenarioRows(){
 function restoreScenario(inputs){
   $('#skuRows').innerHTML = '';
   (inputs.skus || [
-    {sku:'3-pack', pills:3, price:21.95, innerPkg:1.50, outerBox:1.75, displayBox:1.00, packsPerDisplay:12, shippingBox:1.50, packsPerShipBox:24}
+    {sku:'3-pack', pills:3, price:21.95, innerPkg:1.50, outerBox:1.75, displayBox:0, packsPerDisplay:1, shippingBox:1.5, packsPerShipBox:1}
   ]).forEach(s => $('#skuRows').appendChild(makeSkuRow({
     sku: s.sku,
     pills: s.pills,
@@ -1725,10 +1725,10 @@ function boot(){
         price:21.95, 
         innerPkg: 1.50, 
         outerBox: 1.75,
-        displayBox: 1.00,
-        packsPerDisplay: 12,
-        shippingBox: 1.50,
-        packsPerShipBox: 24
+        displayBox: 0,
+        packsPerDisplay: 1,
+        shippingBox: 1.5,
+        packsPerShipBox: 1
     }));
     updateOrderComposition();
     updateMonthlyVolumeInputs();
