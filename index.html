@@ -88,7 +88,7 @@
   .level-rsm { padding-left: 40px !important; }
   .level-sp { padding-left: 60px !important; font-style: italic; }
   .total-row { font-weight: bold; border-top: 2px solid ButtonBorder; }
- 
+
   /* Purchase Order Section Styles */
   .po-tabs { display: flex; gap: 4px; border-bottom: 1px solid ButtonBorder; margin-bottom: 12px; }
   .po-tab { padding: 8px 12px; border: 1px solid ButtonBorder; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; background: color-mix(in srgb, Field 90%, CanvasText 10%); }
@@ -178,6 +178,10 @@
           <div><label>Operating margin %</label><input id="omR" data-tip="omR" class="w-120" type="text" value="0%" readonly></div>
         </div>
         <div class="row">
+            <div><label>Cost per Pill</label><input id="costPerPillR" data-tip="costPerPillR" class="w-120" type="text" value="$0" readonly></div>
+            <div><label>Profit per Pill</label><input id="profitPerPillR" data-tip="profitPerPillR" class="w-120" type="text" value="$0" readonly></div>
+        </div>
+        <div class="row">
           <div><label>Shipping per pack (USD) <span class="q" data-tip="shipCost">?</span></label><input id="shippingPerPack" class="w-120" type="number" step="0.01" value="2.50" data-tip="shipCost_input"></div>
           <label class="row"><input id="includeShip" type="checkbox" checked> Include shipping</label>
         </div>
@@ -200,6 +204,10 @@
           <div><label>Operating profit / pack</label><input id="opW" data-tip="opW" class="w-120" type="text" value="$0" readonly></div>
           <div><label>Operating margin %</label><input id="omW" data-tip="omW" class="w-120" type="text" value="0%" readonly></div>
         </div>
+        <div class="row">
+            <div><label>Cost per Pill</label><input id="costPerPillW" data-tip="costPerPillW" class="w-120" type="text" value="$0" readonly></div>
+            <div><label>Profit per Pill</label><input id="profitPerPillW" data-tip="profitPerPillW" class="w-120" type="text" value="$0" readonly></div>
+        </div>
       </div>
       <div class="card">
         <div class="row" style="justify-content:space-between"><strong data-tip="ch_distributor">Distributor</strong><span class="muted">Wholesale − Discount</span></div>
@@ -219,12 +227,17 @@
           <div><label>Operating profit / pack</label><input id="opD" data-tip="opD" class="w-120" type="text" value="$0" readonly></div>
           <div><label>Operating margin %</label><input id="omD" data-tip="omD" class="w-120" type="text" value="0%" readonly></div>
         </div>
+        <div class="row">
+            <div><label>Cost per Pill</label><input id="costPerPillD" data-tip="costPerPillD" class="w-120" type="text" value="$0" readonly></div>
+            <div><label>Profit per Pill</label><input id="profitPerPillD" data-tip="profitPerPillD" class="w-120" type="text" value="$0" readonly></div>
+        </div>
       </div>
     </div>
     <div class="divider"></div>
     <h2>Monthly Costs (Operating Overhead) <span id="oh_total" class="chip" data-tip="oh_total_tip">Total: $0</span><span class="q" data-tip="overhead">?</span></h2>
-    <div class="row">
-      <div><label>Monthly pack volume</label><input id="monthlyVolume" class="w-160" type="number" value="1" data-tip="monthlyVolume_input"></div>
+    <div class="grid-2">
+      <div><label>Monthly pack volume</label><input id="monthlyVolume" type="number" value="1" data-tip="monthlyVolume_input"></div>
+      <div><label>Overhead per Pill</label><input id="overheadPerPill" data-tip="overheadPerPill" type="text" value="$0" readonly></div>
     </div>
     <div id="oh_rows"></div>
     <div class="row"><button class="btn" id="add_oh">Add overhead item</button><span class="muted">Name • Monthly cost</span></div>
@@ -239,7 +252,7 @@
             <label class="row"><input id="ohD" type="checkbox" checked> Include overhead in Distributor</label>
         </div>
     </div>
-   
+
     <div class="divider"></div>
     <h2>Break-Even Analysis <span class="q" data-tip="be_section">?</span></h2>
     <div class="row" style="justify-content: space-between;">
@@ -263,7 +276,7 @@
             <div id="be_blended" class="big thin">—</div>
         </div>
     </div>
-   
+
     <div class="divider"></div>
     <h2>Blended Key Performance Indicators</h2>
     <div id="blended_kpis">
@@ -279,7 +292,7 @@
         </div>
     </div>
     <div id="blended_kpi_warning" class="card" style="display:none; text-align:center; color:GrayText;">Please select at least one sales channel to calculate Blended KPIs.</div>
-   
+
   </section>
   <!-- START: Purchase Orders Section -->
   <section style="grid-column:1 / -1">
@@ -289,7 +302,7 @@
       <div class="po-tab" data-tab="wholesale">Wholesale</div>
       <div class="po-tab" data-tab="distributor">Distributor</div>
     </div>
-   
+
     <div id="po-retail" class="po-content active"></div>
     <div id="po-wholesale" class="po-content"></div>
     <div id="po-distributor" class="po-content"></div>
@@ -298,7 +311,7 @@
   <!-- START: New Sales Commissions Section -->
   <section style="grid-column:1 / -1">
     <h2>Sales Commission Hierarchy <span class="q" data-tip="comm_section_main">?</span></h2>
-   
+
     <!-- President Tier -->
     <div class="comm-tier">
         <h3>President of Sales <span class="q" data-tip="comm_pres_tier">?</span></h3>
@@ -419,13 +432,13 @@ function money3(n){ const x = Number(n||0); const s = Math.abs(x).toFixed(3); le
 (function(){ const demo=[12,12.5,12.345,12.340,0].map(money3).join(' · '); $('#fmt_demo').textContent='Formatter: '+demo })();
 // ===== Tooltip engine =====
 const TIP = $('#tip');
-const T = {};
+const tooltips = {};
 let LATEST_CALC = {}; // Holds the latest calculation results
 function showTip(key, evt){
     const target = evt.target.closest('[data-tip], .q');
     if (!target) return;
     const tipKey = target.getAttribute('data-tip');
-    const t = T[tipKey];
+    const t = tooltips[tipKey];
     if(!t) return;
     TIP.innerHTML = '<h3>'+t.title+'</h3><div>'+t.body(target)+'</div>';
     const r=target.getBoundingClientRect();
@@ -570,7 +583,7 @@ function calc(){
   const gpR = priceR - cogs, gpW = priceW - cogs, gpD = priceD - cogs;
   const gmR = priceR > 0 ? gpR / priceR : 0, gmW = priceW > 0 ? gpW / priceW : 0, gmD = priceD > 0 ? gpD / priceD : 0;
   const ohTotal = S.oh.reduce((a, x) => a + x, 0);
-  
+
   const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0;
 
   const ohPerPackR = S.ohR ? ohPerPack : 0;
@@ -598,6 +611,14 @@ function calc(){
   const totalMgPerPack = S.ing.reduce((a, x) => a + x.mg * weightedPillsPerPack, 0);
   const costPerMg = totalMgPerPack > 0 ? ingPerPack / totalMgPerPack : 0;
   const costPerGram = costPerMg * 1000;
+
+  // Per-pill calculations
+  const costPerPill = weightedPillsPerPack > 0 ? cogs / weightedPillsPerPack : 0;
+  const profitPerPillR = weightedPillsPerPack > 0 ? opR / weightedPillsPerPack : 0;
+  const profitPerPillW = weightedPillsPerPack > 0 ? opW / weightedPillsPerPack : 0;
+  const profitPerPillD = weightedPillsPerPack > 0 ? opD / weightedPillsPerPack : 0;
+  const overheadPerPill = weightedPillsPerPack > 0 ? ohPerPack / weightedPillsPerPack : 0;
+
   const commissionResults = calculateAllCommissions(S, { priceR, priceW, priceD, gpR, gpW, gpD });
 
   const beIncludeOverhead = $('#be_include_overhead').checked;
@@ -610,7 +631,7 @@ function calc(){
   const be_rev_W = be_units_W * priceW;
   const be_rev_D = be_units_D * priceD;
   const be_rev_B = be_units_B * brev;
-  LATEST_CALC = { S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B, shippingBoxCostW, shippingBoxCostD, ohTotal, totalPacks, totalPills, totalBoxes, weightedRetailPrice, weightedPillsPerPack, weightedPacksPerDisplay };
+  LATEST_CALC = { S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B, shippingBoxCostW, shippingBoxCostD, ohTotal, totalPacks, totalPills, totalBoxes, weightedRetailPrice, weightedPillsPerPack, weightedPacksPerDisplay, costPerPill, profitPerPillR, profitPerPillW, profitPerPillD, overheadPerPill };
   return LATEST_CALC;
 }
 function updateOrderComposition(){
@@ -650,6 +671,16 @@ function render(){
   $('#opD').value = money3(C.opD); $('#omD').value = pct(C.omD);
   $('#retailerProfit').value = money3(C.retailerProfit);
   $('#distProfit').value = money3(C.distProfit);
+
+  // Per Pill Metrics
+  $('#costPerPillR').value = money3(C.costPerPill);
+  $('#profitPerPillR').value = money3(C.profitPerPillR);
+  $('#costPerPillW').value = money3(C.costPerPill);
+  $('#profitPerPillW').value = money3(C.profitPerPillW);
+  $('#costPerPillD').value = money3(C.costPerPill);
+  $('#profitPerPillD').value = money3(C.profitPerPillD);
+  $('#overheadPerPill').value = money3(C.overheadPerPill);
+
   const totalMix = S.mixR + S.mixW + S.mixD;
   const showBlended = totalMix > 0;
   $('#blended_kpis').style.display = showBlended ? 'block' : 'none';
@@ -708,7 +739,7 @@ function render(){
   $('#be_distributor').innerHTML = formatMasterPackBE(C.be_units_D, C.be_rev_D, 'MASTER DISTRIBUTOR PACKS', 5000);
   $('#be_blended').innerHTML = formatBlendedBE(C.be_units_B, C.be_rev_B, S.mixR, S.mixW, S.mixD);
   $('#oh_total').textContent = `Total: ${money(C.ohTotal)}`;
-  
+
   // Render new commission table
   renderCommissionTable(C.commissionResults);
   // Render Purchase Orders
@@ -753,6 +784,15 @@ function wireTips(C){
     omR:{title:'Retail OM%', body:()=> money3(C.opR)+' / '+money3(C.priceR)+' = <b>'+pct(C.omR)+'</b>'},
     omW:{title:'Wholesale OM%', body:()=> money3(C.opW)+' / '+money3(C.priceW)+' = <b>'+pct(C.omW)+'</b>'},
     omD:{title:'Distributor OM%', body:()=> money3(C.opD)+' / '+money3(C.priceD)+' = <b>'+pct(C.omD)+'</b>'},
+    costPerPillR: {title: 'Cost Per Pill (Retail)', body:()=> `Total COGS per Pack / Weighted Pills per Pack.<br>${money3(C.cogs)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.costPerPill)}</b>`},
+    profitPerPillR: {title: 'Profit Per Pill (Retail)', body:()=> `Operating Profit per Pack / Weighted Pills per Pack.<br>${money3(C.opR)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.profitPerPillR)}</b>`},
+    costPerPillW: {title: 'Cost Per Pill (Wholesale)', body:()=> `Total COGS per Pack / Weighted Pills per Pack.<br>${money3(C.cogs)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.costPerPill)}</b>`},
+    profitPerPillW: {title: 'Profit Per Pill (Wholesale)', body:()=> `Operating Profit per Pack / Weighted Pills per Pack.<br>${money3(C.opW)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.profitPerPillW)}</b>`},
+    costPerPillD: {title: 'Cost Per Pill (Distributor)', body:()=> `Total COGS per Pack / Weighted Pills per Pack.<br>${money3(C.cogs)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.costPerPill)}</b>`},
+    profitPerPillD: {title: 'Profit Per Pill (Distributor)', body:()=> `Operating Profit per Pack / Weighted Pills per Pack.<br>${money3(C.opD)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.profitPerPillD)}</b>`},
+    overheadPerPill: {title: 'Overhead Per Pill', body:()=> `Overhead per Pack / Weighted Pills per Pack.<br>${money3(C.ohPerPack)} / ${C.weightedPillsPerPack.toFixed(2)} = <b>${money3(C.overheadPerPill)}</b>`},
+    po_summary_cost_pill: {title: 'Average Cost per Pill', body:()=> 'The average cost (COGS) per pill for this entire purchase order.'},
+    po_summary_profit_pill: {title: 'Average Profit per Pill', body:()=> 'The average gross profit per pill for this entire purchase order.'},
     brev:{title:'Blended revenue/pack', body:()=> money3(C.priceR)+'×'+C.S.mixR+'% + '+money3(C.priceW)+'×'+C.S.mixW+'% + '+money3(C.priceD)+'×'+C.S.mixD+'% = <b>'+money3(C.brev)+'</b>'},
     bgpp:{title:'Blended GP/pack', body:()=> money3(C.gpR)+'×'+C.S.mixR+'% + '+money3(C.gpW)+'×'+C.S.mixW+'% + '+money3(C.gpD)+'×'+C.S.mixD+'% = <b>'+money3(C.bgpp)+'</b>'},
     bgmp:{title:'Blended GM%', body:()=> money3(C.bgpp)+' / '+money3(C.brev)+' = <b>'+pct(C.bgmp)+'</b>'},
@@ -829,7 +869,7 @@ function wireTips(C){
   ALL_COLUMNS.forEach(col => {
     tips[`col_tip_${col.key}`] = { title: col.label, body: () => col.tooltip };
   });
-  Object.assign(T, tips);
+  Object.assign(tooltips, tips);
 }
 function updateChannelStates() {
     const channels = [
@@ -1292,11 +1332,11 @@ function getCommissionState() {
 }
 function calculateAllCommissions(S, C) {
     const commState = getCommissionState();
-   
+
     const periodSel = $('#projPeriod').value;
     const mult = periodSel === 'Daily' ? 1/30.44 : periodSel === 'Weekly' ? 1/4.33 : periodSel === 'Yearly' ? 12 : 1;
     const vol = S.monthlyVolume * mult;
-   
+
     const vR = vol * (S.mixR / 100);
     const vW = vol * (S.mixW / 100);
     const vD = vol * (S.mixD / 100);
@@ -1311,10 +1351,10 @@ function calculateAllCommissions(S, C) {
         if (sp.chR) { units += perf.R.vol; grossRev += perf.R.rev; grossProfit += perf.R.gp; }
         if (sp.chW) { units += perf.W.vol; grossRev += perf.W.rev; grossProfit += perf.W.gp; }
         if (sp.chD) { units += perf.D.vol; grossRev += perf.D.rev; grossProfit += perf.D.gp; }
-       
+
         if (sp.type === 'pctGrossRev') base = grossRev * (sp.val / 100);
         else if (sp.type === 'perPack') base = units * sp.val;
-       
+
         let bonus = 0;
         sp.bonuses.forEach(b => {
             const metricVal = b.metric === 'units' ? units : b.metric === 'grossRev' ? grossRev : grossProfit;
@@ -1356,13 +1396,13 @@ function calculateAllCommissions(S, C) {
     let pres_units = 0, pres_grossRev = 0, pres_grossProfit = 0;
     const includedVPs = commState.vps.filter(vp => vp.includePres).map(vp => vp.id);
     const includedRSMs = commState.rsms.filter(rsm => includedVPs.includes(rsm.assignedVP)).map(rsm => rsm.id);
-   
+
     commState.sps.filter(sp => includedRSMs.includes(sp.assignedRSM)).forEach(sp => {
         if (commState.president.chR) { pres_units += perf.R.vol; pres_grossRev += perf.R.rev; pres_grossProfit += perf.R.gp; }
         if (commState.president.chW) { pres_units += perf.W.vol; pres_grossRev += perf.W.rev; pres_grossProfit += perf.W.gp; }
         if (commState.president.chD) { pres_units += perf.D.vol; pres_grossRev += perf.D.rev; pres_grossProfit += perf.D.gp; }
     });
-   
+
     let pres_override = 0;
     if (commState.president.type === 'pctGrossRev') pres_override = pres_grossRev * (commState.president.val / 100);
     else if (commState.president.type === 'perPack') pres_override = pres_units * commState.president.val;
@@ -1413,7 +1453,7 @@ function renderCommissionTable(results) {
             });
         });
     });
-   
+
     // Unassigned people
     // ... logic for unassigned can be added here if needed
     // Total Row
@@ -1426,7 +1466,7 @@ function wireCommissionEvents() {
     $('#add_vp').onclick = () => { $('#vps_container').appendChild(createVPCard()); updateAllDropdowns(); };
     $('#add_rsm').onclick = () => { $('#rsms_container').appendChild(createRSMCard()); updateAllDropdowns(); };
     $('#add_sp').onclick = () => { $('#sps_container').appendChild(createSPCard()); updateAllDropdowns(); };
-   
+
     // Event delegation for name changes to update dropdowns
     document.querySelector('#vps_container').addEventListener('input', e => {
         if (e.target.classList.contains('comm-name')) updateAllDropdowns();
@@ -1439,12 +1479,13 @@ function wireCommissionEvents() {
 // ===== START: Purchase Order Logic =====
 function calculatePurchaseOrderTotals(C) {
     const { S } = C;
-    
+
     let totalPills = 0;
+    let totalCOGS = 0;
     const totals = {
-        retail: { totalCost: 0, totalProfit: 0, lineItems: [] },
-        wholesale: { totalCost: 0, totalProfit: 0, lineItems: [] },
-        distributor: { totalCost: 0, totalProfit: 0, lineItems: [] }
+        retail: { totalRevenue: 0, totalProfit: 0, lineItems: [], costPerPill: 0, profitPerPill: 0 },
+        wholesale: { totalRevenue: 0, totalProfit: 0, lineItems: [], costPerPill: 0, profitPerPill: 0 },
+        distributor: { totalRevenue: 0, totalProfit: 0, lineItems: [], costPerPill: 0, profitPerPill: 0 }
     };
 
     S.order.forEach(orderItem => {
@@ -1458,7 +1499,8 @@ function calculatePurchaseOrderTotals(C) {
         const packPerPack = S.pack.reduce((a, x) => a + x, 0);
         const dispPerPack = (S.disp.reduce((a, x) => a + x, 0)) / (sku.packsPerDisplay || 1);
         const cogs = ingPerPack + packPerPack + dispPerPack;
-        
+        totalCOGS += cogs * orderItem.qty;
+
         const priceR = sku.retailPrice;
         const priceW = priceR * (1 - S.wDisc / 100);
         const priceD = priceW * (1 - S.dDisc / 100);
@@ -1471,21 +1513,32 @@ function calculatePurchaseOrderTotals(C) {
         const profitW = (gpW * orderItem.qty) - (C.shippingBoxCostW * orderItem.qty);
         const profitD = (gpD * orderItem.qty) - (C.shippingBoxCostD * orderItem.qty);
 
-        const lineItemCostR = priceR * orderItem.qty;
-        totals.retail.totalCost += lineItemCostR;
+        const lineItemRevenueR = priceR * orderItem.qty;
+        totals.retail.totalRevenue += lineItemRevenueR;
         totals.retail.totalProfit += profitR;
-        totals.retail.lineItems.push({ sku: sku.sku, qty: orderItem.qty, pills: lineItemPills, cost: lineItemCostR, profit: profitR });
+        totals.retail.lineItems.push({ sku: sku.sku, qty: orderItem.qty, pills: lineItemPills, cost: lineItemRevenueR, profit: profitR });
 
-        const lineItemCostW = priceW * orderItem.qty;
-        totals.wholesale.totalCost += lineItemCostW;
+        const lineItemRevenueW = priceW * orderItem.qty;
+        totals.wholesale.totalRevenue += lineItemRevenueW;
         totals.wholesale.totalProfit += profitW;
-        totals.wholesale.lineItems.push({ sku: sku.sku, qty: orderItem.qty, pills: lineItemPills, cost: lineItemCostW, profit: profitW });
+        totals.wholesale.lineItems.push({ sku: sku.sku, qty: orderItem.qty, pills: lineItemPills, cost: lineItemRevenueW, profit: profitW });
 
-        const lineItemCostD = priceD * orderItem.qty;
-        totals.distributor.totalCost += lineItemCostD;
+        const lineItemRevenueD = priceD * orderItem.qty;
+        totals.distributor.totalRevenue += lineItemRevenueD;
         totals.distributor.totalProfit += profitD;
-        totals.distributor.lineItems.push({ sku: sku.sku, qty: orderItem.qty, pills: lineItemPills, cost: lineItemCostD, profit: profitD });
+        totals.distributor.lineItems.push({ sku: sku.sku, qty: orderItem.qty, pills: lineItemPills, cost: lineItemRevenueD, profit: profitD });
     });
+
+    if (totalPills > 0) {
+        const avgCostPerPill = totalCOGS / totalPills;
+        totals.retail.costPerPill = avgCostPerPill;
+        totals.wholesale.costPerPill = avgCostPerPill;
+        totals.distributor.costPerPill = avgCostPerPill;
+        
+        totals.retail.profitPerPill = totals.retail.totalProfit / totalPills;
+        totals.wholesale.profitPerPill = totals.wholesale.totalProfit / totalPills;
+        totals.distributor.profitPerPill = totals.distributor.totalProfit / totalPills;
+    }
 
     return { ...totals, totalPills };
 }
@@ -1493,29 +1546,31 @@ function calculatePurchaseOrderTotals(C) {
 function calculatePurchaseOrders(C) {
     if (!C) C = calc();
     const poTotals = calculatePurchaseOrderTotals(C);
-    const { S, ohTotal } = C;
+    const { ohTotal } = C;
 
-    const generateTableHTML = (lineItems, grandTotalProfit) => {
-        let table = `<div class="scroller" style="max-height:300px; overflow:auto;"><table><thead><tr><th>SKU</th><th>Quantity</th><th>Total Pills</th><th>Total Cost</th><th>Gross Profit</th></tr></thead><tbody>`;
-        
+    const generateTableHTML = (lineItems, grandTotalProfit, perPillCost, perPillProfit) => {
+        let table = `<div class="scroller" style="max-height:300px; overflow:auto;"><table><thead><tr><th>SKU</th><th>Quantity</th><th>Total Pills</th><th>Total Revenue</th><th>Gross Profit</th></tr></thead><tbody>`;
+
         lineItems.forEach(item => {
             table += `<tr><td>${item.sku}</td><td>${item.qty.toLocaleString()}</td><td>${item.pills.toLocaleString()}</td><td>${money(item.cost)}</td><td>${money(item.profit)}</td></tr>`;
         });
 
         table += `</tbody><tfoot><tr class="total-row"><td><strong>Grand Total</strong></td><td></td><td><strong>${poTotals.totalPills.toLocaleString()}</strong></td><td><strong>${money(lineItems.reduce((a,b)=>a+b.cost,0))}</strong></td><td><strong>${money(grandTotalProfit)}</strong></td></tr></tfoot></table></div>`;
 
-        table += `<div class="grid-3" style="margin-top:16px;">
+        table += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top:16px;">
             <div class="card" data-tip="po_summary_gp"><div class="muted">Total Gross Profit from Order</div><div class="big thin">${money(grandTotalProfit)}</div></div>
             <div class="card" data-tip="po_summary_oh"><div class="muted">Total Monthly Overhead</div><div class="big thin">${money(ohTotal)}</div></div>
             <div class="card" data-tip="po_summary_net"><div class="muted">Net Impact on Monthly Profit</div><div class="big thin">${money(grandTotalProfit - ohTotal)}</div></div>
+            <div class="card" data-tip="po_summary_cost_pill"><div class="muted">Avg Cost per Pill</div><div class="big thin">${money3(perPillCost)}</div></div>
+            <div class="card" data-tip="po_summary_profit_pill"><div class="muted">Avg Profit per Pill</div><div class="big thin">${money3(perPillProfit)}</div></div>
         </div>`;
 
         return table;
     };
 
-    $('#po-retail').innerHTML = generateTableHTML(poTotals.retail.lineItems, poTotals.retail.totalProfit);
-    $('#po-wholesale').innerHTML = generateTableHTML(poTotals.wholesale.lineItems, poTotals.wholesale.totalProfit);
-    $('#po-distributor').innerHTML = generateTableHTML(poTotals.distributor.lineItems, poTotals.distributor.totalProfit);
+    $('#po-retail').innerHTML = generateTableHTML(poTotals.retail.lineItems, poTotals.retail.totalProfit, poTotals.retail.costPerPill, poTotals.retail.profitPerPill);
+    $('#po-wholesale').innerHTML = generateTableHTML(poTotals.wholesale.lineItems, poTotals.wholesale.totalProfit, poTotals.wholesale.costPerPill, poTotals.wholesale.profitPerPill);
+    $('#po-distributor').innerHTML = generateTableHTML(poTotals.distributor.lineItems, poTotals.distributor.totalProfit, poTotals.distributor.costPerPill, poTotals.distributor.profitPerPill);
 }
 
 
@@ -1535,13 +1590,13 @@ function wirePOEvents() {
 function wireInputs(){
     document.addEventListener('input', e => {
         const t = e.target;
-       
+
         if (t.classList.contains('pills')) {
             const row = t.closest('.grid-4');
             const skuInput = row.querySelector('.skuName');
             const pillCount = num(t.value);
             skuInput.value = `${pillCount}-pack`;
-            
+
             const retailPriceInput = row.querySelector('.retailPrice');
             const pricingTiers = { '3': '21.95', '10': '57.50', '15': '82.50', '30': '157.50' };
             if (pricingTiers[pillCount]) {
@@ -1549,16 +1604,16 @@ function wireInputs(){
             }
             updateOrderComposition();
         }
-        
+
         if (t.id === 'mixR' || t.id === 'mixW' || t.id === 'mixD') {
             enforceMix(t.id);
         }
-        
+
         if ($('#autoCalc').checked) {
             render();
         }
     });
-   
+
     $('#channel_toggles').addEventListener('change', () => {
         updateChannelStates();
         enforceMix(null);
@@ -1583,7 +1638,7 @@ function boot(){
     $('#pack_rows').innerHTML = '';
     $('#pack_rows').appendChild(makePackRow('PRODUCT PACKAGE', 1.5));
     $('#pack_rows').appendChild(makePackRow('OUTER BOX', 1.75));
-   
+
     $('#disp_rows').innerHTML = '';
     $('#disp_rows').appendChild(makeDispRow('DISPLAY BOX', 1));
     $('#disp_rows').appendChild(makeDispRow('SHIPPING BOX', 1.5));
@@ -1603,18 +1658,18 @@ function boot(){
     $('#oh_rows').appendChild(makeOhRow('RENT', 5000));
     $('#oh_rows').appendChild(makeOhRow('INSURANCE', 1000));
     $('#oh_rows').appendChild(makeOhRow('POWER', 500));
-   
+
     ensureFullCapture();
     initializeTooltipEvents();
     wireInputs();
     migrateOld();
     updateChannelStates();
-   
+
     // --- Third Party Section Initialization ---
     buildThirdPartySection();
     wireThirdPartyEvents();
     calculateThirdPartyCosts();
-   
+
     // --- Commission Hierarchy Initialization with Defaults ---
     $('#president_card').innerHTML = '';
     $('#vps_container').innerHTML = '';
@@ -1643,7 +1698,7 @@ function boot(){
     spCard.querySelector('.comm-val').value = "5";
     $('#sps_container').appendChild(spCard);
     const spId = spCard.dataset.id;
-   
+
     wireCommissionEvents();
     updateAllDropdowns();
     // Set assignments after dropdowns are populated
@@ -1660,3 +1715,4 @@ boot();
 </script>
 </body>
 </html>
+
