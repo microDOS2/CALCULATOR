@@ -19,6 +19,7 @@
   .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
   .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
   .grid-4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px }
+  .grid-5{ display:grid; grid-template-columns: repeat(5, 1fr); gap:10px }
   label{ display:block; margin:0 0 6px; font-size:12px; color:GrayText }
   input[type="text"],input[type="number"],select{ width:100%; padding:9px 10px; border-radius:10px; border:1px solid ButtonBorder; background:Field; color:FieldText; font-size:14px }
   input[readonly]{ background: color-mix(in srgb, Field 92%, CanvasText 8%); color: color-mix(in srgb, FieldText 70%, CanvasText 30%) }
@@ -98,6 +99,7 @@
   /* New SKU and Order Styles */
   #skuRows { display: flex; flex-direction: column; gap: 10px; }
   #orderComposition { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+  #monthlyVolumePerSku { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
 </style>
 </head><body>
 <header>
@@ -138,8 +140,8 @@
     <div id="ingredients" class="grid-4"></div>
     <div class="row"><button class="btn" id="add_ing">Add ingredient</button><span class="muted">Name • milligrams per pill • cost per milligram</span></div>
     <div class="grid-2">
-      <div class="card"><div class="muted">Total ingredient cost per pack <span class="q" data-tip="k_ing">?</span></div><div id="kpi_ing" data-tip="k_ing" class="big thin">$0</div></div>
-      <div class="card"><div class="muted">Total cost of goods per pack (for Gross) <span class="q" data-tip="k_cogs">?</span></div><div id="kpi_cogs" data-tip="k_cogs" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Blended ingredient cost per pack <span class="q" data-tip="k_ing">?</span></div><div id="kpi_ing" data-tip="k_ing" class="big thin">$0</div></div>
+      <div class="card"><div class="muted">Blended cost of goods per pack <span class="q" data-tip="k_cogs">?</span></div><div id="kpi_cogs" data-tip="k_cogs" class="big thin">$0</div></div>
       <div class="card"><div class="muted">Ingredient Cost per milligram <span class="q" data-tip="k_mg">?</span></div><div id="kpi_costmg" data-tip="k_mg" class="big thin">$0</div></div>
       <div class="card"><div class="muted">Ingredient Cost per gram <span class="q" data-tip="k_g">?</span></div><div id="kpi_costg" data-tip="k_g" class="big thin">$0</div></div>
     </div>
@@ -235,9 +237,13 @@
     </div>
     <div class="divider"></div>
     <h2>Monthly Costs (Operating Overhead) <span id="oh_total" class="chip" data-tip="oh_total_tip">Total: $0</span><span class="q" data-tip="overhead">?</span></h2>
-    <div class="grid-2">
-      <div><label>Monthly pack volume</label><input id="monthlyVolume" type="number" value="1" data-tip="monthlyVolume_input"></div>
-      <div><label>Overhead per Pill</label><input id="overheadPerPill" data-tip="overheadPerPill" type="text" value="$0" readonly></div>
+    <div class="card">
+        <label>Monthly Pack Volume per SKU</label>
+        <div id="monthlyVolumePerSku"></div>
+        <div class="grid-2">
+            <div><label>Total Monthly Volume</label><input id="monthlyVolume" type="text" value="0" data-tip="monthlyVolume_total" readonly></div>
+            <div><label>Overhead per Pill</label><input id="overheadPerPill" data-tip="overheadPerPill" type="text" value="$0" readonly></div>
+        </div>
     </div>
     <div id="oh_rows"></div>
     <div class="row"><button class="btn" id="add_oh">Add overhead item</button><span class="muted">Name • Monthly cost</span></div>
@@ -495,21 +501,29 @@ function makeOhRow(name='', cost=''){
   return d;
 }
 function makeSkuRow(sku='3-pack', pills=3, price=21.95, packsDisp=0){
-  const d = document.createElement('div'); d.className='grid-4';
+  const d = document.createElement('div');
+  d.className='grid-5';
   d.innerHTML = `
-    <div><label>SKU <span class="q" data-tip="sku">?</span></label><input class="skuName" type="text" value="${sku}" readonly></div>
-    <div><label>Pills per pack <span class="q" data-tip="pills">?</span></label><input class="pills" type="number" value="${pills}" data-tip="pills_input"></div>
-    <div><label>Retail price per pack (USD) <span class="q" data-tip="price">?</span></label><input class="retailPrice" type="number" step="0.01" value="${price}" data-tip="price_input"></div>
-    <div><label>Packs per display <span class="q" data-tip="packsDisp">?</span></label><input class="packsPerDisplay" type="number" value="${packsDisp}" data-tip="packsDisp_input"></div>
-    <button class="btn small rm">Remove</button>
+    <div><label>SKU</label><input class="skuName" type="text" value="${sku}" readonly data-tip="sku"></div>
+    <div><label>Pills/pack</label><input class="pills" type="number" value="${pills}" data-tip="pills_input"></div>
+    <div><label>Retail price/pack</label><input class="retailPrice" type="number" step="0.01" value="${price}" data-tip="price_input"></div>
+    <div><label>Ingredient Cost/pack</label><input class="ingCostSku" type="text" value="$0" data-tip="ingCostSku" readonly></div>
+    <div><label>Packs/display</label><input class="packsPerDisplay" type="number" value="${packsDisp}" data-tip="packsDisp_input"></div>
+    <button class="btn small rm" style="grid-column: 1 / -1; justify-self: start;">Remove</button>
   `;
-  d.querySelector('.rm').onclick = () => { d.remove(); updateOrderComposition(); if($('#autoCalc').checked) render(); };
+  d.querySelector('.rm').onclick = () => { d.remove(); updateOrderComposition(); updateMonthlyVolumeInputs(); if($('#autoCalc').checked) render(); };
   return d;
 }
 function makeOrderRow(sku, qty=0){
   const d = document.createElement('div'); d.className='card';
   d.innerHTML = `<div><label>SKU: ${sku}</label><input class="orderQty" type="number" value="${qty}" data-tip="orderQty_input"></div>`;
   return d;
+}
+function makeMonthlyVolumeRow(sku, qty = 1) {
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.innerHTML = `<div><label>SKU: ${sku}</label><input class="monthlyVolumeSku" type="number" value="${qty}" data-tip="monthlyVolume_sku_input"></div>`;
+    return d;
 }
 // ===== Wire add buttons =====
 $('#add_ing').onclick = ()=>{ $('#ingredients').appendChild(makeIngRow()); if($('#autoCalc').checked) render() };
@@ -520,13 +534,14 @@ $('#add_sku').onclick = ()=>{
     const newPills = 10;
     $('#skuRows').appendChild(makeSkuRow(`${newPills}-pack`, newPills, 57.50, 0)); 
     updateOrderComposition(); 
+    updateMonthlyVolumeInputs();
     if($('#autoCalc').checked) render(); 
 };
 $('#calc_order').onclick = render;
 // ===== State + math =====
 function getState(){
   const S={};
-  S.skus = $$('#skuRows .grid-4').map(r => ({
+  S.skus = $$('#skuRows .grid-5').map(r => ({
     sku: r.querySelector('.skuName').value,
     pills: num(r.querySelector('.pills').value),
     retailPrice: num(r.querySelector('.retailPrice').value),
@@ -544,7 +559,7 @@ function getState(){
   S.mixW = $('#includeW').checked ? num($('#mixW').value) : 0;
   S.mixD = $('#includeD').checked ? num($('#mixD').value) : 0;
   S.ohR = $('#ohR').checked; S.ohW = $('#ohW').checked; S.ohD = $('#ohD').checked;
-  S.monthlyVolume = Math.max(1, num($('#monthlyVolume').value));
+  S.monthlyVolume = $$('#monthlyVolumePerSku .monthlyVolumeSku').reduce((total, input) => total + num(input.value), 0);
   S.ing = $$('#ingredients .row').map(r=>({ mg:num(r.querySelector('.ingMg').value), usdmg:num(r.querySelector('.ingUsdMg').value) }));
   S.pack = $$('#pack_rows .row').map(r=> num(r.querySelector('.packCost').value));
   S.disp = $$('#disp_rows .row').map(r=> num(r.querySelector('.dispCost').value));
@@ -584,7 +599,8 @@ function calc(){
   const gmR = priceR > 0 ? gpR / priceR : 0, gmW = priceW > 0 ? gpW / priceW : 0, gmD = priceD > 0 ? gpD / priceD : 0;
   const ohTotal = S.oh.reduce((a, x) => a + x, 0);
 
-  const ohPerPack = S.monthlyVolume > 0 ? ohTotal / S.monthlyVolume : 0;
+  const totalMonthlyVolume = Math.max(1, S.monthlyVolume);
+  const ohPerPack = totalMonthlyVolume > 0 ? ohTotal / totalMonthlyVolume : 0;
 
   const ohPerPackR = S.ohR ? ohPerPack : 0;
   const ohPerPackW = S.ohW ? ohPerPack : 0;
@@ -631,7 +647,7 @@ function calc(){
   const be_rev_W = be_units_W * priceW;
   const be_rev_D = be_units_D * priceD;
   const be_rev_B = be_units_B * brev;
-  LATEST_CALC = { S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B, shippingBoxCostW, shippingBoxCostD, ohTotal, totalPacks, totalPills, totalBoxes, weightedRetailPrice, weightedPillsPerPack, weightedPacksPerDisplay, costPerPill, profitPerPillR, profitPerPillW, profitPerPillD, overheadPerPill };
+  LATEST_CALC = { S, ingPerPack, packPerPack, dispPerPack, cogs, priceR, priceW, priceD, gpR, gpW, gpD, gmR, gmW, gmD, ohPerPack, ohPerPackR, ohPerPackW, ohPerPackD, shipPerPack, opR, opW, opD, omR, omW, omD, brev, bgpp, bopp, bgmp, bomp, retailerProfit, distProfit, costPerMg, costPerGram, commissionResults, totalFixedCosts, be_units_R, be_units_W, be_units_D, be_units_B, be_rev_R, be_rev_W, be_rev_D, be_rev_B, shippingBoxCostW, shippingBoxCostD, ohTotal, totalPacks, totalPills, totalBoxes, weightedRetailPrice, weightedPillsPerPack, weightedPacksPerDisplay, costPerPill, profitPerPillR, profitPerPillW, profitPerPillD, overheadPerPill, totalMonthlyVolume };
   return LATEST_CALC;
 }
 function updateOrderComposition(){
@@ -642,7 +658,7 @@ function updateOrderComposition(){
         currentQuantities[skuName] = qty;
     });
 
-    const skus = $$('#skuRows .grid-4').map(r => r.querySelector('.skuName').value);
+    const skus = $$('#skuRows .grid-5').map(r => r.querySelector('.skuName').value);
     const container = $('#orderComposition');
     container.innerHTML = '';
 
@@ -651,9 +667,36 @@ function updateOrderComposition(){
         container.appendChild(makeOrderRow(skuName, savedQty));
     });
 }
+function updateMonthlyVolumeInputs() {
+    const currentVolumes = {};
+    $$('#monthlyVolumePerSku .card').forEach(card => {
+        const skuName = card.querySelector('label').textContent.replace('SKU: ', '');
+        const qty = num(card.querySelector('.monthlyVolumeSku').value);
+        currentVolumes[skuName] = qty;
+    });
+
+    const skus = $$('#skuRows .grid-5').map(r => r.querySelector('.skuName').value);
+    const container = $('#monthlyVolumePerSku');
+    container.innerHTML = '';
+
+    skus.forEach(skuName => {
+        const savedQty = currentVolumes[skuName] || 1;
+        container.appendChild(makeMonthlyVolumeRow(skuName, savedQty));
+    });
+}
 function render(){
   const C = calc();
   const { S } = C;
+  
+  // Per-SKU Ingredient Cost
+  const ingPerPill = S.ing.reduce((a, x) => a + (x.mg * x.usdmg), 0);
+  $$('#skuRows .grid-5').forEach(row => {
+    const pills = num(row.querySelector('.pills').value);
+    const ingCost = ingPerPill * pills;
+    row.querySelector('.ingCostSku').value = money3(ingCost);
+  });
+  
+  updateMonthlyVolumeInputs();
   $('#packCostPerPack').value = money3(C.packPerPack);
   $('#dispCostPerPack').value = money3(C.dispPerPack);
   $('#kpi_ing').textContent = money3(C.ingPerPack);
@@ -680,6 +723,7 @@ function render(){
   $('#costPerPillD').value = money3(C.costPerPill);
   $('#profitPerPillD').value = money3(C.profitPerPillD);
   $('#overheadPerPill').value = money3(C.overheadPerPill);
+  $('#monthlyVolume').value = C.totalMonthlyVolume.toLocaleString();
 
   const totalMix = S.mixR + S.mixW + S.mixD;
   const showBlended = totalMix > 0;
@@ -763,9 +807,17 @@ function wireTips(C){
     packsDisp:{title:'Packs per display', body:()=> 'Weighted average: Σ(display)/'+C.weightedPacksPerDisplay.toFixed(2)+' = <b>'+money3(C.dispPerPack)+'</b>'},
     packCost:{title:'Packaging / pack', body:()=> 'Σ(pack rows) = <b>'+money3(C.packPerPack)+'</b>'},
     dispCost:{title:'Display / pack', body:()=> 'Σ(display rows)/'+C.weightedPacksPerDisplay.toFixed(2)+' = <b>'+money3(C.dispPerPack)+'</b>'},
-    ingredients:{title:'Ingredients', body:()=> 'Σ(mg/pill × pills × $/mg). Pills are based on the weighted average from the order composition.'},
-    k_ing:{title:'Ingredient cost / pack', body:()=> '= <b>'+money3(C.ingPerPack)+'</b>'},
-    k_cogs:{title:'COGS / pack', body:()=> money3(C.ingPerPack)+' + '+money3(C.packPerPack)+' + '+money3(C.dispPerPack)+' = <b>'+money3(C.cogs)+'</b>'},
+    ingredients:{title:'Ingredients', body:()=> 'Define the components of a single pill here.'},
+    ingCostSku: {title: 'Ingredient Cost per SKU', body: (target) => {
+        const row = target.closest('.grid-5');
+        if (!row) return '...';
+        const pills = num(row.querySelector('.pills').value);
+        const ingPerPill = LATEST_CALC.S.ing.reduce((a, x) => a + (x.mg * x.usdmg), 0);
+        const ingCost = ingPerPill * pills;
+        return `Total ingredient cost for one pill (${money3(ingPerPill)}) × ${pills} pills in this pack = <b>${money3(ingCost)}</b>`;
+    }},
+    k_ing:{title:'Blended ingredient cost / pack', body:()=> 'This is the weighted average ingredient cost per pack based on your "Order Composition". = <b>'+money3(C.ingPerPack)+'</b>'},
+    k_cogs:{title:'Blended COGS / pack', body:()=> 'Blended Cost of Goods Sold. '+money3(C.ingPerPack)+' + '+money3(C.packPerPack)+' + '+money3(C.dispPerPack)+' = <b>'+money3(C.cogs)+'</b>'},
     k_mg:{title:'Ingredient Cost $/mg & $/kg', body:()=> { const C = LATEST_CALC; const S = C.S; const mg=S.ing.reduce((a,x)=>a+x.mg*C.weightedPillsPerPack,0); if(!mg) return '—'; const mgString = `${money3(C.ingPerPack)} / ${mg.toFixed(0)} mg = <b>${money3(C.costPerMg)}/mg</b>`; const kgString = `${money(C.costPerGram)}/g × 1000 = <b>${money(C.costPerGram * 1000)}/kg</b>`; return `${mgString}<br>${kgString}`; }},
     k_g:{title:'Ingredient Cost $/gram', body:()=> { const C = LATEST_CALC; const S = C.S; const mg=S.ing.reduce((a,x)=>a+x.mg*C.weightedPillsPerPack,0); return mg? money3(C.costPerMg)+' × 1000 = <b>'+money(C.costPerGram)+'</b>':'—' }},
     channels:{title:'Channels', body:()=> 'Wholesale/Distributor apply discounts to the weighted average Retail price.'},
@@ -796,7 +848,7 @@ function wireTips(C){
     brev:{title:'Blended revenue/pack', body:()=> money3(C.priceR)+'×'+C.S.mixR+'% + '+money3(C.priceW)+'×'+C.S.mixW+'% + '+money3(C.priceD)+'×'+C.S.mixD+'% = <b>'+money3(C.brev)+'</b>'},
     bgpp:{title:'Blended GP/pack', body:()=> money3(C.gpR)+'×'+C.S.mixR+'% + '+money3(C.gpW)+'×'+C.S.mixW+'% + '+money3(C.gpD)+'×'+C.S.mixD+'% = <b>'+money3(C.bgpp)+'</b>'},
     bgmp:{title:'Blended GM%', body:()=> money3(C.bgpp)+' / '+money3(C.brev)+' = <b>'+pct(C.bgmp)+'</b>'},
-    ohpp:{title:'Overhead / pack', body:()=> 'Total Monthly Overhead / Monthly Pack Volume<br>'+money(C.ohTotal)+' / '+C.S.monthlyVolume.toLocaleString()+' = <b>'+money3(C.ohPerPack)+'</b>'},
+    ohpp:{title:'Overhead / pack', body:()=> 'Total Monthly Overhead / Total Monthly Pack Volume<br>'+money(C.ohTotal)+' / '+C.S.monthlyVolume.toLocaleString()+' = <b>'+money3(C.ohPerPack)+'</b>'},
     bopp:{title:'Blended OP/pack', body:()=> money3(C.opR)+'×'+C.S.mixR+'% + '+money3(C.opW)+'×'+C.S.mixW+'% + '+money3(C.opD)+'×'+C.S.mixD+'% = <b>'+money3(C.bopp)+'</b>'},
     bomp:{title:'Blended OM%', body:()=> money3(C.bopp)+' / '+money3(C.brev)+' = <b>'+pct(C.bomp)+'</b>'},
     scenarios:{title:'Scenarios', body:()=> 'v6 storage with timestamps. Use Choose columns to define capture.'},
@@ -822,7 +874,8 @@ function wireTips(C){
     }},
     dDisc_input: {title: 'Input: Distributor Discount %', body:()=> 'Discount off WHOLESALE price for distributors.'},
     shipCost_input: {title: 'Input: Shipping per pack', body:()=> 'Enter the shipping cost for a single retail pack.'},
-    monthlyVolume_input: {title: 'Input: Monthly Volume', body:()=> `Total Overhead of ${money(LATEST_CALC.ohTotal)} / ${LATEST_CALC.S.monthlyVolume.toLocaleString()} packs = <b>${money3(LATEST_CALC.ohPerPack)}/pack</b>`},
+    monthlyVolume_sku_input: {title: 'Input: Monthly Volume for SKU', body:()=> `Enter the projected monthly sales volume for this specific SKU.`},
+    monthlyVolume_total: {title: 'Total Monthly Volume', body:()=> `This is the sum of all individual SKU monthly volumes.`},
     ingName_input: {title: 'Input: Ingredient Name', body:()=> 'Name of the ingredient.'},
     ingMg_input: {title: 'Input: Milligrams per Pill', body:()=> 'How many milligrams of this ingredient are in one pill.'},
     ingUsdMg_input: {title: 'Input: Cost per Milligram', body:()=> 'The cost for one milligram of this ingredient.'},
@@ -1031,7 +1084,17 @@ function restoreScenario(inputs){
   if(inputs.mixR!=null) $('#mixR').value=inputs.mixR;
   if(inputs.mixW!=null) $('#mixW').value=inputs.mixW;
   if(inputs.mixD!=null) $('#mixD').value=inputs.mixD;
-  if(inputs.monthlyVolume!=null) $('#monthlyVolume').value=inputs.monthlyVolume;
+  
+  // Restore monthly volumes
+  updateMonthlyVolumeInputs(); // Make sure the inputs exist
+  $$('#monthlyVolumePerSku .card').forEach(card => {
+    const skuName = card.querySelector('label').textContent.replace('SKU: ', '');
+    const volumeItem = (inputs.monthlyVolumes || []).find(v => v.sku === skuName);
+    if (volumeItem) {
+        card.querySelector('.monthlyVolumeSku').value = volumeItem.qty;
+    }
+  });
+
   if(inputs.includeShip!=null) $('#includeShip').checked=!!inputs.includeShip;
   if(inputs.shippingPerPack!=null) $('#shippingPerPack').value=inputs.shippingPerPack;
 
@@ -1592,7 +1655,7 @@ function wireInputs(){
         const t = e.target;
 
         if (t.classList.contains('pills')) {
-            const row = t.closest('.grid-4');
+            const row = t.closest('.grid-5');
             const skuInput = row.querySelector('.skuName');
             const pillCount = num(t.value);
             skuInput.value = `${pillCount}-pack`;
@@ -1603,6 +1666,7 @@ function wireInputs(){
                 retailPriceInput.value = pricingTiers[pillCount];
             }
             updateOrderComposition();
+            updateMonthlyVolumeInputs();
         }
 
         if (t.id === 'mixR' || t.id === 'mixW' || t.id === 'mixD') {
@@ -1631,6 +1695,7 @@ function boot(){
     // Set default values for the top-left section from the image
     $('#skuRows').appendChild(makeSkuRow('3-pack', 3, 21.95, 0));
     updateOrderComposition();
+    updateMonthlyVolumeInputs();
     $('#ingredients').innerHTML = '';
     $('#ingredients').appendChild(makeIngRow('Metocin 4-HO-MET', 2, 0.7));
     $('#ingredients').appendChild(makeIngRow('Filler', 800, 0.000075));
@@ -1652,7 +1717,6 @@ function boot(){
     $('#wDisc').value = 50;
     $('#dDisc').value = 25;
     $('#shippingPerPack').value = 2.50;
-    $('#monthlyVolume').value = 1;
     $('#oh_rows').innerHTML = '';
     $('#oh_rows').appendChild(makeOhRow('Salaries', 10000));
     $('#oh_rows').appendChild(makeOhRow('RENT', 5000));
