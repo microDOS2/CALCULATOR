@@ -1673,10 +1673,9 @@ function calculatePurchaseOrderTotals(C) {
     const lineItems = [];
     const grandTotals = {
         totalQty: 0,
-        retailQty: 0,
-        wholesaleQty: 0,
-        distributorQty: 0,
-        totalRevenue: 0,
+        retailProfit: 0,
+        wholesaleProfit: 0,
+        distributorProfit: 0,
         totalProfit: 0,
         totalPills: 0,
         totalCOGS: 0
@@ -1697,25 +1696,26 @@ function calculatePurchaseOrderTotals(C) {
         const priceW = priceR * (1 - S.wDisc / 100);
         const priceD = priceW * (1 - S.dDisc / 100);
         
-        const revenue = (retailQty * priceR) + (wholesaleQty * priceW) + (distributorQty * priceD);
-        const grossProfit = (retailQty * (priceR - cogsPerPack)) + (wholesaleQty * (priceW - cogsPerPack)) + (distributorQty * (priceD - cogsPerPack));
+        const retailProfit = retailQty * (priceR - cogsPerPack);
+        const wholesaleProfit = wholesaleQty * (priceW - cogsPerPack);
+        const distributorProfit = distributorQty * (priceD - cogsPerPack);
+        
+        const totalProfit = retailProfit + wholesaleProfit + distributorProfit;
         
         const line = {
             sku: sku.sku,
             totalQty: orderItem.qty,
-            retailQty: retailQty,
-            wholesaleQty: wholesaleQty,
-            distributorQty: distributorQty,
-            totalRevenue: revenue,
-            totalProfit: grossProfit
+            retailProfit,
+            wholesaleProfit,
+            distributorProfit,
+            totalProfit
         };
         lineItems.push(line);
 
         grandTotals.totalQty += line.totalQty;
-        grandTotals.retailQty += line.retailQty;
-        grandTotals.wholesaleQty += line.wholesaleQty;
-        grandTotals.distributorQty += line.distributorQty;
-        grandTotals.totalRevenue += line.totalRevenue;
+        grandTotals.retailProfit += line.retailProfit;
+        grandTotals.wholesaleProfit += line.wholesaleProfit;
+        grandTotals.distributorProfit += line.distributorProfit;
         grandTotals.totalProfit += line.totalProfit;
         grandTotals.totalPills += sku.pills * orderItem.qty;
         grandTotals.totalCOGS += cogsPerPack * orderItem.qty;
@@ -1739,10 +1739,9 @@ function calculatePurchaseOrders(C) {
           <tr>
             <th>SKU</th>
             <th>Total Qty</th>
-            <th>Retail Qty</th>
-            <th>Wholesale Qty</th>
-            <th>Distributor Qty</th>
-            <th>Total Revenue</th>
+            <th>Retail Profit</th>
+            <th>Wholesale Profit</th>
+            <th>Distributor Profit</th>
             <th>Total Gross Profit</th>
           </tr>
         </thead>
@@ -1753,10 +1752,9 @@ function calculatePurchaseOrders(C) {
           <tr>
             <td>${item.sku}</td>
             <td>${item.totalQty.toLocaleString()}</td>
-            <td>${item.retailQty.toFixed(1)}</td>
-            <td>${item.wholesaleQty.toFixed(1)}</td>
-            <td>${item.distributorQty.toFixed(1)}</td>
-            <td>${money(item.totalRevenue)}</td>
+            <td>${money(item.retailProfit)}</td>
+            <td>${money(item.wholesaleProfit)}</td>
+            <td>${money(item.distributorProfit)}</td>
             <td>${money(item.totalProfit)}</td>
           </tr>`;
     });
@@ -1767,10 +1765,9 @@ function calculatePurchaseOrders(C) {
           <tr class="total-row">
             <td><strong>Grand Total</strong></td>
             <td><strong>${grandTotals.totalQty.toLocaleString()}</strong></td>
-            <td><strong>${grandTotals.retailQty.toFixed(1)}</strong></td>
-            <td><strong>${grandTotals.wholesaleQty.toFixed(1)}</strong></td>
-            <td><strong>${grandTotals.distributorQty.toFixed(1)}</strong></td>
-            <td><strong>${money(grandTotals.totalRevenue)}</strong></td>
+            <td><strong>${money(grandTotals.retailProfit)}</strong></td>
+            <td><strong>${money(grandTotals.wholesaleProfit)}</strong></td>
+            <td><strong>${money(grandTotals.distributorProfit)}</strong></td>
             <td><strong>${money(grandTotals.totalProfit)}</strong></td>
           </tr>
         </tfoot>
