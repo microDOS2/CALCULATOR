@@ -391,8 +391,8 @@
   <section style="grid-column:1 / -1">
     <div class="row" style="justify-content:space-between; align-items:flex-end">
       <div>
-        <h2>Scenarios (v6) <span class="q" data-tip="scenarios">?</span></h2>
-        <div class="muted">Save inputs & outputs with timestamps. Capture controls which columns are stored.</div>
+        <h2>Scenarios (v7) <span class="q" data-tip="scenarios">?</span></h2>
+        <div class="muted">Save inputs & a comprehensive set of outputs. Use "Choose columns" to customize.</div>
       </div>
       <div class="row">
         <input id="scenario_label" class="w-160" type="text" placeholder="Scenario label">
@@ -413,7 +413,7 @@
 <div id="modal" style="display:none; position:fixed; inset:0; background:color-mix(in srgb, Canvas 70%, CanvasText 30%); align-items:center; justify-content:center; z-index:50">
   <div style="background:Field; border:1px solid ButtonBorder; border-radius:16px; padding:16px; width:min(980px, 92vw); max-height:85vh; overflow:auto; display:flex; flex-direction:column; gap:12px">
     <div class="row" style="justify-content:space-between"><strong>Choose columns to capture</strong><button id="modal_close" class="btn small">Close</button></div>
-    <div id="cols_groups"></div>
+    <div id="cols_groups" class="grid-3" style="align-items: flex-start;"></div>
     <div class="row" style="justify-content:flex-end">
       <input id="cap_name" class="w-220" placeholder="Name this capture (e.g., Sales Focus)">
       <button id="save_capture" class="btn primary">Save capture</button>
@@ -572,14 +572,14 @@ function getState(){
   S.ohR = $('#ohR').checked; S.ohW = $('#ohW').checked; S.ohD = $('#ohD').checked;
   S.monthlyVolume = $$('#monthlyVolumePerSku .monthlyVolumeSku').reduce((total, input) => total + num(input.value), 0);
   S.ing = $$('#ingredients .row').map(r=>({ mg:num(r.querySelector('.ingMg').value), usdmg:num(r.querySelector('.ingUsdMg').value) }));
-  S.oh = $$('#oh_rows .row').map(r=> num(r.querySelector('.ohCost').value));
+  S.oh = $$('#oh_rows .row').map(r=> ({ name: r.querySelector('.ohName').value, cost: num(r.querySelector('.ohCost').value) }));
   S.includeThirdParty = $('#includeThirdParty').checked;
   return S;
 }
 function calc(){
   const S = getState();
   const thirdPartyTotal = calculateThirdPartyCosts(true);
-  const manualOhTotal = S.oh.reduce((a, x) => a + x, 0);
+  const manualOhTotal = S.oh.reduce((a, x) => a + x.cost, 0);
   const ohTotal = manualOhTotal + (S.includeThirdParty ? thirdPartyTotal : 0);
 
   let totalPacks = 0, totalPills = 0, totalIngCost = 0, totalPackCost = 0, totalDispCost = 0, totalShipBoxCost = 0;
@@ -933,7 +933,7 @@ function wireTips(C){
     ohpp:{title:'Overhead / pack', body:()=> 'Total Monthly Overhead / Total Monthly Pack Volume<br>'+money(C.ohTotal)+' / '+C.S.monthlyVolume.toLocaleString()+' = <b>'+money3(C.ohPerPack)+'</b>'},
     bopp:{title:'Blended OP/pack', body:()=> 'The average operating profit per pack across all SKUs and channels in the order, after overhead.'},
     bomp:{title:'Blended OM%', body:()=> money3(C.bopp)+' / '+money3(C.brev)+' = <b>'+pct(C.bomp)+'</b>'},
-    scenarios:{title:'Scenarios', body:()=> 'v6 storage with timestamps. Use Choose columns to define capture.'},
+    scenarios:{title:'Scenarios', body:()=> 'v7 storage with timestamps. Use Choose columns to define capture.'},
     comm:{title:'Sales commissions', body:()=> 'Per salesperson: select channels, choose commission type, add optional bonuses. Calculated for selected period.'},
     revR: {title:'Retail Revenue/pack', body:()=> 'This is the weighted average retail price per pack. = <b>'+money3(C.priceR)+'</b>'},
     retailerProfit: {title: 'Retailer Profit/pack', body:()=> 'The profit the retailer makes on a wholesale transaction.<br>'+money3(C.priceR)+' (Retail) - '+money3(C.priceW)+' (Wholesale Price) = <b>'+money3(C.retailerProfit)+'</b>'},
@@ -1075,74 +1075,193 @@ function enforceSkuMix(changedInput) {
     }
      if ($('#autoCalc').checked) render();
 }
-// ===== Scenarios (v6) + captures + migration =====
-const LS_KEY='channel_calc_scenarios_v6';
-const OLD_KEYS=['channel_calc_scenarios_v3','channel_calc_scenarios_v5'];
+// ===== Scenarios (v7) + captures + migration =====
+const LS_KEY='channel_calc_scenarios_v7';
+const OLD_KEYS=['channel_calc_scenarios_v3','channel_calc_scenarios_v5', 'channel_calc_scenarios_v6'];
 let CAPTURES={ '__full__': [] };
+
 const ALL_COLUMNS = [
-  {key:'savedAt', label:'Saved', tooltip: 'The date the scenario was saved.'},
-  {key:'label', label:'Label', tooltip: 'A custom name for the scenario.'},
-  {key:'lastCalculatedAt', label:'Last Calculated At', tooltip: 'The last time the calculations were run for this scenario.'},
-  {key:'pills', label:'Pills', tooltip: 'Number of pills per pack.'},
-  {key:'retailPrice', label:'Retail Price', tooltip: 'The selling price to the end customer.'},
-  {key:'packsPerDisplay', label:'Packs per Display', tooltip: 'Number of packs in a shipping display.'},
-  {key:'ingPerPack', label:'Ingredients / pack', tooltip: 'Total cost of ingredients for one pack.'},
-  {key:'packPerPack', label:'Packaging / pack', tooltip: 'Total cost of packaging for one pack.'},
-  {key:'dispPerPack', label:'Display / pack', tooltip: 'Amortized cost of the display per pack.'},
-  {key:'cogs', label:'Total COGS', tooltip: 'Total Cost of Goods Sold per pack.'},
-  {key:'ohPerPack', label:'Overhead / pack', tooltip: 'Amortized monthly overhead cost per pack.'},
-  {key:'shipPerPack', label:'Shipping / pack', tooltip: 'Amortized shipping cost per pack for retail orders.'},
-  {key:'wDisc', label:'Wholesale Discount %', tooltip: 'Discount percentage for wholesale channel.'},
-  {key:'dDisc', label:'Distributor Discount %', tooltip: 'Discount percentage for distributor channel.'},
-  {key:'mixR', label:'Mix Retail %', tooltip: 'Percentage of sales from the retail channel.'},
-  {key:'mixW', label:'Mix Wholesale %', tooltip: 'Percentage of sales from the wholesale channel.'},
-  {key:'mixD', label:'Mix Distributor %', tooltip: 'Percentage of sales from the distributor channel.'},
-  {key:'gmR', label:'Gross Margin % Retail', tooltip: 'Gross Margin percentage for the retail channel.'},
-  {key:'gmW', label:'Gross Margin % Wholesale', tooltip: 'Gross Margin percentage for the wholesale channel.'},
-  {key:'gmD', label:'Gross Margin % Distributor', tooltip: 'Gross Margin percentage for the distributor channel.'},
-  {key:'omR', label:'Operating Margin % Retail', tooltip: 'Operating Margin percentage for the retail channel.'},
-  {key:'omW', label:'Operating Margin % Wholesale', tooltip: 'Operating Margin percentage for the wholesale channel.'},
-  {key:'omD', label:'Operating Margin % Distributor', tooltip: 'Operating Margin percentage for the distributor channel.'},
-  {key:'brev', label:'Blended Revenue/Pack', tooltip: 'Blended revenue per pack across all active channels.'},
-  {key:'bgpp', label:'Blended Gross Profit/Pack', tooltip: 'Blended gross profit per pack across all active channels.'},
-  {key:'bgmp', label:'Blended Gross Margin %', tooltip: 'Blended gross margin percentage across all active channels.'},
-  {key:'bopp', label:'Blended Operating Profit/Pack', tooltip: 'Blended operating profit per pack across all active channels.'},
-  {key:'bomp', label:'Blended Operating Margin %', tooltip: 'Blended operating margin percentage across all active channels.'},
-  {key:'salespersonCount', label:'Salesperson Count', tooltip: 'Total number of salespersons.'},
-  {key:'totalComm', label:'Total Commissions', tooltip: 'Total commissions paid for the projection period.'},
-  {key:'totalBonus', label:'Total Bonuses', tooltip: 'Total bonuses paid for the projection period.'},
-  {key:'commPctGross', label:'Commission % of Revenue', tooltip: 'Total commissions as a percentage of total revenue.'},
-  {key:'commPctOp', label:'Commission % of Operating Profit', tooltip: 'Total commissions as a percentage of operating profit.'},
-  {key:'totalRevenue', label:'Total Revenue', tooltip: 'Total projected revenue for the period.'},
-  {key:'totalOpProfit', label:'Blended OP Profit', tooltip: 'Total projected operating profit for the period.'},
-  {key:'anonymous', label:'Anonymous', tooltip: 'Placeholder for user data.'},
-  {key:'if', label:'IF', tooltip: 'Placeholder for conditional logic.'},
-  {key:'load', label:'Load', tooltip: 'Load this scenario\'s inputs.'}
+    // Meta
+    { key: 'savedAt', label: 'Saved At', tooltip: 'The date and time the scenario was saved.' },
+    { key: 'label', label: 'Label', tooltip: 'A custom name for the scenario.' },
+    // Core Costs
+    { key: 'ingPerPack', label: 'Blended Ing. Cost/Pack', tooltip: 'Blended ingredient cost per pack based on order composition.' },
+    { key: 'packPerPack', label: 'Blended Pkg. Cost/Pack', tooltip: 'Blended packaging cost per pack based on order composition.' },
+    { key: 'dispPerPack', label: 'Blended Display Cost/Pack', tooltip: 'Blended amortized display cost per pack based on order composition.' },
+    { key: 'shipBoxPerPack', label: 'Blended Ship Box Cost/Pack', tooltip: 'Blended amortized shipping box cost per pack based on order composition.' },
+    { key: 'cogs', label: 'Blended COGS/Pack', tooltip: 'Blended Cost of Goods Sold per pack based on order composition.' },
+    { key: 'ohPerPack', label: 'Overhead/Pack', tooltip: 'Total monthly overhead allocated on a per-pack basis according to total monthly volume.' },
+    { key: 'shipPerPack', label: 'Shipping/Pack (Retail)', tooltip: 'Shipping cost applied to each retail pack sold.' },
+    // Blended KPIs
+    { key: 'brev', label: 'Blended Revenue/Pack', tooltip: 'Blended revenue per pack across all channels, based on the specific SKU mixes in the order.' },
+    { key: 'bgpp', label: 'Blended GP/Pack', tooltip: 'Blended gross profit per pack across all channels.' },
+    { key: 'bgmp', label: 'Blended GM %', tooltip: 'Blended gross margin percentage across all channels.' },
+    { key: 'bopp', label: 'Blended OP/Pack', tooltip: 'Blended operating profit per pack across all channels, after overhead.' },
+    { key: 'bomp', label: 'Blended OM %', tooltip: 'Blended operating margin percentage across all channels, after overhead.' },
+    // Channel Details - Retail
+    { key: 'revR', label: 'Retail Revenue/Pack', tooltip: 'Average revenue per pack for the retail portion of the order.' },
+    { key: 'gpR', label: 'Retail GP/Pack', tooltip: 'Average gross profit per pack for the retail portion of the order.' },
+    { key: 'gmR', label: 'Retail GM %', tooltip: 'Average gross margin percentage for the retail portion of the order.' },
+    { key: 'opR', label: 'Retail OP/Pack', tooltip: 'Average operating profit per pack for the retail portion of the order.' },
+    { key: 'omR', label: 'Retail OM %', tooltip: 'Average operating margin percentage for the retail portion of the order.' },
+    // Channel Details - Wholesale
+    { key: 'revW', label: 'Wholesale Revenue/Pack', tooltip: 'Average revenue per pack for the wholesale portion of the order.' },
+    { key: 'gpW', label: 'Wholesale GP/Pack', tooltip: 'Average gross profit per pack for the wholesale portion of the order.' },
+    { key: 'gmW', label: 'Wholesale GM %', tooltip: 'Average gross margin percentage for the wholesale portion of the order.' },
+    { key: 'opW', label: 'Wholesale OP/Pack', tooltip: 'Average operating profit per pack for the wholesale portion of the order.' },
+    { key: 'omW', label: 'Wholesale OM %', tooltip: 'Average operating margin percentage for the wholesale portion of the order.' },
+    { key: 'retailerProfit', label: 'Retailer Profit/Pack', tooltip: 'The profit the downstream retailer makes on a wholesale transaction.' },
+    // Channel Details - Distributor
+    { key: 'revD', label: 'Distributor Revenue/Pack', tooltip: 'Average revenue per pack for the distributor portion of the order.' },
+    { key: 'gpD', label: 'Distributor GP/Pack', tooltip: 'Average gross profit per pack for the distributor portion of the order.' },
+    { key: 'gmD', label: 'Distributor GM %', tooltip: 'Average gross margin percentage for the distributor portion of the order.' },
+    { key: 'opD', label: 'Distributor OP/Pack', tooltip: 'Average operating profit per pack for the distributor portion of the order.' },
+    { key: 'omD', label: 'Distributor OM %', tooltip: 'Average operating margin percentage for the distributor portion of the order.' },
+    { key: 'distProfit', label: 'Distributor Profit/Pack', tooltip: 'The profit the downstream distributor makes on a transaction.' },
+    // Per Pill Metrics
+    { key: 'costPerPill', label: 'Avg. COGS/Pill', tooltip: 'The average blended COGS per individual pill.' },
+    { key: 'profitPerPillR', label: 'Retail OP/Pill', tooltip: 'The average operating profit per pill for retail sales.' },
+    { key: 'profitPerPillW', label: 'Wholesale OP/Pill', tooltip: 'The average operating profit per pill for wholesale sales.' },
+    { key: 'profitPerPillD', label: 'Distributor OP/Pill', tooltip: 'The average operating profit per pill for distributor sales.' },
+    { key: 'overheadPerPill', label: 'Overhead/Pill', tooltip: 'The portion of monthly overhead allocated to a single pill.' },
+    // Break-Even Analysis
+    { key: 'be_units_R', label: 'B/E Units (Retail)', tooltip: 'Break-even point in packs if selling only through Retail.' },
+    { key: 'be_rev_R', label: 'B/E Revenue (Retail)', tooltip: 'Break-even point in revenue if selling only through Retail.' },
+    { key: 'be_units_W', label: 'B/E Units (Wholesale)', tooltip: 'Break-even point in packs if selling only through Wholesale.' },
+    { key: 'be_rev_W', label: 'B/E Revenue (Wholesale)', tooltip: 'Break-even point in revenue if selling only through Wholesale.' },
+    { key: 'be_units_D', label: 'B/E Units (Distributor)', tooltip: 'Break-even point in packs if selling only through Distributor.' },
+    { key: 'be_rev_D', label: 'B/E Revenue (Distributor)', tooltip: 'Break-even point in revenue if selling only through Distributor.' },
+    { key: 'be_units_B', label: 'B/E Units (Blended)', tooltip: 'Break-even point in total packs for your actual blended business.' },
+    { key: 'be_rev_B', label: 'B/E Revenue (Blended)', tooltip: 'Break-even point in total revenue for your actual blended business.' },
+    // Purchase Order Analysis
+    { key: 'po_totalQty', label: 'PO Total Qty', tooltip: 'Total quantity of packs in the specified Order Composition.' },
+    { key: 'po_retailProfit', label: 'PO Retail Profit', tooltip: 'Total gross profit from the retail portion of this specific order.' },
+    { key: 'po_wholesaleProfit', label: 'PO Wholesale Profit', tooltip: 'Total gross profit from the wholesale portion of this specific order.' },
+    { key: 'po_distributorProfit', label: 'PO Distributor Profit', tooltip: 'Total gross profit from the distributor portion of this specific order.' },
+    { key: 'po_totalProfit', label: 'PO Total GP', tooltip: 'Total gross profit from all channels for this specific order.' },
+    { key: 'po_netImpact', label: 'PO Net Impact on Monthly Profit', tooltip: 'The order\'s total gross profit minus total monthly overhead.' },
+    { key: 'po_avgCostPerPill', label: 'PO Avg. Cost/Pill', tooltip: 'Average COGS per pill for this specific order composition.' },
+    { key: 'po_avgProfitPerPill', label: 'PO Avg. GP/Pill', tooltip: 'Average gross profit per pill for this specific order composition.' },
+    // Commission Summary
+    { key: 'comm_totalRevenue', label: 'Commissionable Revenue', tooltip: 'Total revenue used for commission calculations for the selected period.' },
+    { key: 'comm_totalOpProfit', label: 'Commissionable OP', tooltip: 'Total operating profit used for commission calculations for the selected period.' },
+    { key: 'comm_totalComm', label: 'Total Commissions Paid', tooltip: 'Sum of all commissions and overrides for the selected period.' },
+    { key: 'comm_totalBonus', label: 'Total Bonuses Paid', tooltip: 'Sum of all bonuses paid for the selected period.' },
+    { key: 'comm_commPctGross', label: 'Commissions as % of Revenue', tooltip: 'Total commissions as a percentage of total commissionable revenue.' },
+    { key: 'comm_commPctOp', label: 'Commissions as % of OP', tooltip: 'Total commissions as a percentage of total commissionable operating profit.' },
+    { key: 'comm_salespersonCount', label: 'Salesperson Count', tooltip: 'Total number of salespersons in the hierarchy.' },
+    { key: 'load', label: 'Load', tooltip: 'Load this scenario\'s inputs.'}
 ];
+
 const SCENARIO_TABLE_KEYS = ALL_COLUMNS.map(c => c.key).filter(k => k !== 'load');
+
 function ensureFullCapture(){ CAPTURES['__full__'] = ALL_COLUMNS.map(c=>c.key) }
 function currentCaptureKeys(){ const sel=$('#capture_sel').value; return CAPTURES[sel]||ALL_COLUMNS.map(c=>c.key) }
-function drawScenarioTableHeaders(){ const head=$('#scenarios_head'); head.innerHTML=''; const tr=document.createElement('tr'); SCENARIO_TABLE_KEYS.forEach(key=>{ const colInfo = ALL_COLUMNS.find(c => c.key === key); const th=document.createElement('th'); th.textContent=colInfo.label; tr.appendChild(th) }); const th=document.createElement('th'); th.textContent='Load'; tr.appendChild(th); head.appendChild(tr) }
+function drawScenarioTableHeaders(){ const head=$('#scenarios_head'); head.innerHTML=''; const tr=document.createElement('tr'); SCENARIO_TABLE_KEYS.forEach(key=>{ const colInfo = ALL_COLUMNS.find(c => c.key === key); const th=document.createElement('th'); th.textContent=colInfo ? colInfo.label : key; tr.appendChild(th) }); const th=document.createElement('th'); th.textContent='Load'; tr.appendChild(th); head.appendChild(tr) }
 function loadScenarios(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]') }catch(e){ return [] } }
 function saveScenarios(list){ localStorage.setItem(LS_KEY, JSON.stringify(list)) }
-function migrateOld(){ /* Migration logic can be re-added if needed */ }
+function migrateOld(){ OLD_KEYS.forEach(k => localStorage.removeItem(k)); }
+
 function scenarioFromCurrent(C){
-  const S=C.S;
-  const row={};
-  row.savedAt = new Date().toLocaleDateString();
-  row.label = ($('#scenario_label').value||'').trim();
-  row.retailPrice=money(C.weightedRetailPrice);
-  row.cogs=money(C.cogs);
-  row.brev=money(C.brev);
-  row.bopp=money(C.bopp);
-  row.totalRevenue = money(C.commissionResults?.totalRevenue || 0);
-  row.commPctGross = pct(C.commissionResults?.commPctGross || 0);
-  row.totalOpProfit = money(C.commissionResults?.totalOpProfit || 0);
-  row.anonymous = 'Anonymous';
-  row.if = 'IF';
-  row.__inputs={ skus:S.skus, order:S.order, wDisc:S.wDisc, dDisc:S.dDisc, monthlyVolume:S.monthlyVolume, includeShip:S.includeShip, shippingPerPack:S.shippingPerPack, oh: S.oh };
-  return row
+  const S = C.S;
+  const poTotals = calculatePurchaseOrderTotals(C).grandTotals;
+  const commResults = C.commissionResults;
+  const row = {};
+
+  // Meta
+  row.savedAt = new Date().toLocaleString();
+  row.label = ($('#scenario_label').value || '').trim();
+
+  // Core Costs
+  row.ingPerPack = money3(C.ingPerPack);
+  row.packPerPack = money3(C.packPerPack);
+  row.dispPerPack = money3(C.dispPerPack);
+  row.shipBoxPerPack = money3(C.weightedShippingBoxCost);
+  row.cogs = money3(C.cogs);
+  row.ohPerPack = money3(C.ohPerPack);
+  row.shipPerPack = money3(C.shipPerPack);
+
+  // Blended KPIs
+  row.brev = money3(C.brev);
+  row.bgpp = money3(C.bgpp);
+  row.bgmp = pct(C.bgmp);
+  row.bopp = money3(C.bopp);
+  row.bomp = pct(C.bomp);
+
+  // Channel Details (Retail)
+  row.revR = money3(C.priceR);
+  row.gpR = money3(C.gpR);
+  row.gmR = pct(C.gmR);
+  row.opR = money3(C.opR);
+  row.omR = pct(C.omR);
+
+  // Channel Details (Wholesale)
+  row.revW = money3(C.priceW);
+  row.gpW = money3(C.gpW);
+  row.gmW = pct(C.gmW);
+  row.opW = money3(C.opW);
+  row.omW = pct(C.omW);
+  row.retailerProfit = money3(C.retailerProfit);
+
+  // Channel Details (Distributor)
+  row.revD = money3(C.priceD);
+  row.gpD = money3(C.gpD);
+  row.gmD = pct(C.gmD);
+  row.opD = money3(C.opD);
+  row.omD = pct(C.omD);
+  row.distProfit = money3(C.distProfit);
+
+  // Per Pill Metrics
+  row.costPerPill = money3(C.costPerPill);
+  row.profitPerPillR = money3(C.profitPerPillR);
+  row.profitPerPillW = money3(C.profitPerPillW);
+  row.profitPerPillD = money3(C.profitPerPillD);
+  row.overheadPerPill = money3(C.overheadPerPill);
+
+  // Break-Even Analysis
+  row.be_units_R = isFinite(C.be_units_R) ? Math.ceil(C.be_units_R).toLocaleString() : 'Unprofitable';
+  row.be_rev_R = isFinite(C.be_rev_R) ? money(C.be_rev_R) : 'N/A';
+  row.be_units_W = isFinite(C.be_units_W) ? Math.ceil(C.be_units_W).toLocaleString() : 'Unprofitable';
+  row.be_rev_W = isFinite(C.be_rev_W) ? money(C.be_rev_W) : 'N/A';
+  row.be_units_D = isFinite(C.be_units_D) ? Math.ceil(C.be_units_D).toLocaleString() : 'Unprofitable';
+  row.be_rev_D = isFinite(C.be_rev_D) ? money(C.be_rev_D) : 'N/A';
+  row.be_units_B = isFinite(C.be_units_B) ? Math.ceil(C.be_units_B).toLocaleString() : 'Unprofitable';
+  row.be_rev_B = isFinite(C.be_rev_B) ? money(C.be_rev_B) : 'N/A';
+
+  // Purchase Order Analysis
+  row.po_totalQty = poTotals.totalQty.toLocaleString();
+  row.po_retailProfit = money(poTotals.retailProfit);
+  row.po_wholesaleProfit = money(poTotals.wholesaleProfit);
+  row.po_distributorProfit = money(poTotals.distributorProfit);
+  row.po_totalProfit = money(poTotals.totalProfit);
+  row.po_netImpact = money(poTotals.totalProfit - C.ohTotal);
+  row.po_avgCostPerPill = money3(poTotals.avgCostPerPill);
+  row.po_avgProfitPerPill = money3(poTotals.avgProfitPerPill);
+
+  // Commission Summary
+  row.comm_totalRevenue = money(commResults.totalRevenue);
+  row.comm_totalOpProfit = money(commResults.totalOpProfit);
+  row.comm_totalComm = money(commResults.totalComm);
+  row.comm_totalBonus = money(commResults.totalBonus);
+  row.comm_commPctGross = pct(commResults.commPctGross);
+  row.comm_commPctOp = pct(commResults.commPctOp);
+  row.comm_salespersonCount = commResults.sps.length;
+  
+  // Inputs object for restoring state
+  row.__inputs = {
+    skus: S.skus,
+    order: S.order,
+    ing: S.ing,
+    oh: S.oh,
+    wDisc: S.wDisc,
+    dDisc: S.dDisc,
+    monthlyVolumes: $$('#monthlyVolumePerSku .card').map(c => ({ sku: c.querySelector('label').textContent.replace('SKU: ', ''), qty: num(c.querySelector('.monthlyVolumeSku').value) })),
+    includeShip: S.includeShip,
+    shippingPerPack: S.shippingPerPack
+  };
+  return row;
 }
+
 function drawScenarioRows(){
   const body=$('#scenarios_body');
   body.innerHTML='';
@@ -1166,12 +1285,10 @@ function drawScenarioRows(){
 }
 function restoreScenario(inputs){
   $('#skuRows').innerHTML = '';
-  (inputs.skus || [
-    {sku:'3-pack', pills:3, price:21.95, innerPkg:1.50, outerBox:1.75, displayBox:0, packsPerDisplay:1, shippingBox:1.5, packsPerShipBox:1, mixR:100, mixW:0, mixD:0}
-  ]).forEach(s => $('#skuRows').appendChild(makeSkuRow({
+  (inputs.skus || []).forEach(s => $('#skuRows').appendChild(makeSkuRow({
     sku: s.sku,
     pills: s.pills,
-    price: s.retailPrice || s.price,
+    price: s.retailPrice || s.price, // backward compatibility
     innerPkg: s.innerPkgCost || s.innerPkg,
     outerBox: s.outerBoxCost || s.outerBox,
     displayBox: s.displayBoxCost,
@@ -1182,6 +1299,7 @@ function restoreScenario(inputs){
     mixW: s.mixW,
     mixD: s.mixD
   })));
+  
   updateOrderComposition();
   $$('#orderComposition .card').forEach(card => {
     const skuName = card.querySelector('label').textContent.replace('SKU: ', '');
@@ -1190,25 +1308,31 @@ function restoreScenario(inputs){
         card.querySelector('.orderQty').value = orderItem.qty;
     }
   });
-  if(inputs.wDisc!=null) $('#wDisc').value=inputs.wDisc;
-  if(inputs.dDisc!=null) $('#dDisc').value=inputs.dDisc;
-  
+
   // Restore monthly volumes
-  updateMonthlyVolumeInputs(); // Make sure the inputs exist
+  updateMonthlyVolumeInputs();
   $$('#monthlyVolumePerSku .card').forEach(card => {
-    const skuName = card.querySelector('label').textContent.replace('SKU: ', '');
+    const skuName = card.querySelector('[data-sku-name]').dataset.skuName;
     const volumeItem = (inputs.monthlyVolumes || []).find(v => v.sku === skuName);
     if (volumeItem) {
         card.querySelector('.monthlyVolumeSku').value = volumeItem.qty;
+    } else {
+        card.querySelector('.monthlyVolumeSku').value = 1;
     }
   });
 
+  if(inputs.wDisc!=null) $('#wDisc').value=inputs.wDisc;
+  if(inputs.dDisc!=null) $('#dDisc').value=inputs.dDisc;
+  
   if(inputs.includeShip!=null) $('#includeShip').checked=!!inputs.includeShip;
   if(inputs.shippingPerPack!=null) $('#shippingPerPack').value=inputs.shippingPerPack;
 
   // Restore dynamic rows
+  $('#ingredients').innerHTML = '';
+  (inputs.ing || []).forEach(item => $('#ingredients').appendChild(makeIngRow(item.name, item.mg, item.usdmg)));
+
   $('#oh_rows').innerHTML = '';
-  if(inputs.oh) inputs.oh.forEach((cost, i) => $('#oh_rows').appendChild(makeOhRow(`Overhead ${i+1}`, cost)));
+  (inputs.oh || []).forEach(item => $('#oh_rows').appendChild(makeOhRow(item.name, item.cost)));
 
   render();
 }
@@ -1216,12 +1340,16 @@ function onSaveScenario(){ const C=calc(); const row=scenarioFromCurrent(C); con
 function toCSV(){ const list=loadScenarios(); if(!list.length){ alert('No scenarios saved.'); return } const keys=SCENARIO_TABLE_KEYS.filter(c=>c !== 'load'); const header=keys.map(k => (ALL_COLUMNS.find(c=>c.key===k) || {}).label).join(','); const rows=list.map(r=> keys.map(k=> (r[k]??'').toString().replace(/\"/g,'""')).map(x=>'"'+x+'"').join(',')); const csv=[header, ...rows].join('\n'); const blob=new Blob([csv], {type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='scenarios.csv'; a.click(); URL.revokeObjectURL(url) }
 // Capture modal
 const GROUPS = {
-  'Meta': ['savedAt','label','lastCalculatedAt'],
-  'Product': ['pills','retailPrice','packsPerDisplay'],
-  'Costs': ['ingPerPack','packPerPack','dispPerPack','cogs','ohPerPack','shipPerPack'],
-  'Channels': ['wDisc','dDisc','mixR','mixW','mixD','gmR','gmW','gmD','omR','omW','omD'],
-  'Blended': ['brev','bgpp','bgmp','bopp','bomp'],
-  'Commissions': ['salespersonCount','totalComm','totalBonus','commPctGross','commPctOp']
+    'Meta': ['savedAt', 'label'],
+    'Core Costs': ['ingPerPack', 'packPerPack', 'dispPerPack', 'shipBoxPerPack', 'cogs', 'ohPerPack', 'shipPerPack'],
+    'Blended KPIs': ['brev', 'bgpp', 'bgmp', 'bopp', 'bomp'],
+    'Channel Details (Retail)': ['revR', 'gpR', 'gmR', 'opR', 'omR'],
+    'Channel Details (Wholesale)': ['revW', 'gpW', 'gmW', 'opW', 'omW', 'retailerProfit'],
+    'Channel Details (Distributor)': ['revD', 'gpD', 'gmD', 'opD', 'omD', 'distProfit'],
+    'Per Pill Metrics': ['costPerPill', 'profitPerPillR', 'profitPerPillW', 'profitPerPillD', 'overheadPerPill'],
+    'Break-Even Analysis': ['be_units_R', 'be_rev_R', 'be_units_W', 'be_rev_W', 'be_units_D', 'be_rev_D', 'be_units_B', 'be_rev_B'],
+    'Purchase Order Analysis': ['po_totalQty', 'po_retailProfit', 'po_wholesaleProfit', 'po_distributorProfit', 'po_totalProfit', 'po_netImpact', 'po_avgCostPerPill', 'po_avgProfitPerPill'],
+    'Commission Summary': ['comm_totalRevenue', 'comm_totalOpProfit', 'comm_totalComm', 'comm_totalBonus', 'comm_commPctGross', 'comm_commPctOp', 'comm_salespersonCount']
 };
 function openCaptureModal(){
   wireTips(calc()); // Ensure tooltips are populated
